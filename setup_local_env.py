@@ -25,8 +25,7 @@ def install_local_requirements():
     
     # build final pip command
 
-    cmd = [sys.executable, "-m", "pip", "install", "upgrade", "--target", target_dir] + requirements
-
+    cmd = [sys.executable, "-m", "pip", "install","--no-user", "--upgrade", "--target", target_dir,*requirements]
 
     print(f"Installing{len(requirements)} dependencies into {target_dir}...")
     print("Running:", " ".join(cmd))
