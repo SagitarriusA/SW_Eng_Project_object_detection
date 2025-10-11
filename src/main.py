@@ -4,7 +4,6 @@ python src/main.py --camera 0
 python src/main.py --image image_001.png
 """
 
-
 import argparse
 import os
 import cv2
