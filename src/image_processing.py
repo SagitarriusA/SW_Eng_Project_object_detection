@@ -16,7 +16,7 @@ class ImageProcessor:
         """Initialize either a camera or image input."""
         if self.cam_device is not None:
             print(f"Initializing camera device {self.cam_device}")
-            self.cap = cv2.VideoCapture(self.cam_device)
+            self.cap = cv2.VideoCapture(self.cam_device, cv2.CAP_DSHOW)
 
             if not self.cap.isOpened():
                 raise RuntimeError(f"Could not open camera device {self.cam_device}")
@@ -66,11 +66,11 @@ class ImageProcessor:
 
 
 if __name__ == "__main__":
-    # processor = ImageProcessor(cam_device=0)
+    processor = ImageProcessor(cam_device=0)
 
-    script_dir = os.path.dirname(os.path.abspath(__file__))
+    """script_dir = os.path.dirname(os.path.abspath(__file__))
     image_path = os.path.join(script_dir, "../images", "test_image_00.png")
-    processor = ImageProcessor(image_path=image_path)
+    processor = ImageProcessor(image_path=image_path)"""
 
     if processor.is_camera:
         print("Running real-time camera processing (press 'q' to quit)")
