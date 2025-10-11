@@ -7,7 +7,7 @@ author: Bauer Ryoya, Walter Julian, Willmann York
 date: 2025-10-11
 version: 1.0
 dependencies: OpenCV (cv2), os, numpy
-classes: ImageProcessor
+classes: DataLogger
 """
 
 import cv2
@@ -25,10 +25,15 @@ class ImageProcessor:
         self.cap = None
         self.image = None
         self.is_camera = False
-        self.logging = DataLogger()
 
-        # Init the source:
-        self._init_source()
+        try:
+            self.logging = DataLogger()
+        except (PermissionError) as e:
+            print(f"[ERROR] {e}")
+
+        else:
+            # Init the source:
+            self._init_source()
 
     def _init_source(self):
         # Init the cam / read the image:
@@ -51,7 +56,7 @@ class ImageProcessor:
             print("Camera initialized successfully.")
 
         elif self.image_path is not None:
-            print(f"Loading image from {self.image_path}")
+            print(f'Loading image from {self.image_path}')
 
             # Raise an error if the path is invalide:
             if not os.path.exists(self.image_path):
@@ -209,37 +214,43 @@ class ImageProcessor:
 
 if __name__ == "__main__":
     # Test the class with device 0:
-    # processor = ImageProcessor(cam_device=0)
+    cam_device = None
+    # cam_device = 0
 
     # Test the class with the test image:
     script_dir = os.path.dirname(os.path.abspath(__file__))
     image_path = os.path.join(script_dir, "../images", "test_image_00.png")
-    processor = ImageProcessor(image_path=image_path)
 
-    # Run the real time application for the cam:
-    if processor.is_camera:
-        print("Running real-time camera processing (press 'q' to quit)")
-        while True:
-            # Collect the current frame and start the processing:
+    try:
+        processor = ImageProcessor(cam_device=cam_device, image_path=image_path)
+    except (FileNotFoundError, ValueError, RuntimeError) as e:
+        print(f"[ERROR] {e}")
+
+    else:
+        # Run the real time application for the cam:
+        if processor.is_camera:
+            print("Running real-time camera processing (press 'q' to quit)")
+            while True:
+                # Collect the current frame and start the processing:
+                frame = processor.get_frame()
+                processed = processor.process_frame(frame)
+
+                # Display the result:
+                cv2.imshow("Processed Frame", processed)
+                if cv2.waitKey(20) & 0xFF == ord('q'):
+                    break
+
+            # Release all ressources:
+            processor.release()
+            cv2.destroyAllWindows()
+        # Run the application once for the image:
+        else:
+            print("Processing static image (press any key to close)")
+            # Collect the current frame and start the processing on the image:
             frame = processor.get_frame()
             processed = processor.process_frame(frame)
 
-            # Display the result:
-            cv2.imshow("Processed Frame", processed)
-            if cv2.waitKey(20) & 0xFF == ord('q'):
-                break
-
-        # Release all ressources:
-        processor.release()
-        cv2.destroyAllWindows()
-    # Run the application once for the image:
-    else:
-        print("Processing static image (press any key to close)")
-        # Collect the current frame and start the processing on the image:
-        frame = processor.get_frame()
-        processed = processor.process_frame(frame)
-
-        # Wait for the user to close the window:
-        cv2.imshow("Processed Image", processed)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+            # Wait for the user to close the window:
+            cv2.imshow("Processed Image", processed)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
