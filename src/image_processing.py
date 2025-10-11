@@ -54,39 +54,35 @@ class ImageProcessor:
     def process_frame(self, image):
         if image is None:
             print("Error, no image found to process")
-            return
+            return image, []
 
         # --- Preprocessing ---
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray, (5, 5), 0)
         _, thresh = cv2.threshold(blurred, 220, 255, cv2.THRESH_BINARY)
 
-        # Morphological cleanup
         kernel = np.ones((5, 5), np.uint8)
         thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
         thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
 
-        # --- Find contours ---
         contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         MIN_AREA = 5000
         MAX_AREA = 500000
+        detections = []
 
         for i, contour in enumerate(contours):
             area = cv2.contourArea(contour)
             if area < MIN_AREA or area > MAX_AREA:
-                continue  # skip too small or too large contours
+                continue
 
-            # Approximate and label
             epsilon = 0.01 * cv2.arcLength(contour, True)
             approx = cv2.approxPolyDP(contour, epsilon, True)
 
             cv2.drawContours(image, [contour], -1, (0, 0, 0), 2)
-
             x, y, w, h = cv2.boundingRect(approx)
             x_mid, y_mid = x + w // 2, y + h // 2
 
-            # Determine shape name
             shape_name = {
                 3: "Triangle",
                 4: "Quadrilateral",
@@ -94,17 +90,17 @@ class ImageProcessor:
                 6: "Hexagon"
             }.get(len(approx), "Circle")
 
-            # Compute average color inside contour
             mask = np.zeros(image.shape[:2], dtype=np.uint8)
             cv2.drawContours(mask, [contour], -1, 255, -1)
             mean_color = cv2.mean(image, mask=mask)
             color_name = self.closest_color_name((mean_color[0], mean_color[1], mean_color[2]))
 
-            # Draw label
             cv2.putText(image, f"{color_name}, {shape_name}",
                         (x_mid - 40, y_mid), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
+            detections.append((shape_name, color_name))
 
-        return image
+        return image, detections
+
 
     def closest_color_name(self, bgr):
         """
