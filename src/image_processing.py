@@ -1,5 +1,6 @@
 import cv2
 import os
+import numpy as np
 
 
 class ImageProcessor:
@@ -50,13 +51,100 @@ class ImageProcessor:
         else:
             return self.image
 
-    def process_frame(self, frame):
-        # Convert to grayscale as a simple example
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    def process_frame(self, image):
+        if image is None:
+            print("Error, no image found to process")
+            return
 
-        # Draw a text overlay just to visualize processing
-        processed = cv2.putText(gray.copy(), "Processed Frame", (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-        return processed
+        # --- Preprocessing ---
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+        _, thresh = cv2.threshold(blurred, 220, 255, cv2.THRESH_BINARY)
+
+        # Morphological cleanup
+        kernel = np.ones((5, 5), np.uint8)
+        thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+        thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+
+        # --- Find contours ---
+        contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+        MIN_AREA = 5000
+        MAX_AREA = 500000
+
+        for i, contour in enumerate(contours):
+            area = cv2.contourArea(contour)
+            if area < MIN_AREA or area > MAX_AREA:
+                continue  # skip too small or too large contours
+
+            # Approximate and label
+            epsilon = 0.01 * cv2.arcLength(contour, True)
+            approx = cv2.approxPolyDP(contour, epsilon, True)
+
+            cv2.drawContours(image, [contour], -1, (0, 0, 0), 2)
+
+            x, y, w, h = cv2.boundingRect(approx)
+            x_mid, y_mid = x + w // 2, y + h // 2
+
+            # Determine shape name
+            shape_name = {
+                3: "Triangle",
+                4: "Quadrilateral",
+                5: "Pentagon",
+                6: "Hexagon"
+            }.get(len(approx), "Circle")
+
+            # Compute average color inside contour
+            mask = np.zeros(image.shape[:2], dtype=np.uint8)
+            cv2.drawContours(mask, [contour], -1, 255, -1)
+            mean_color = cv2.mean(image, mask=mask)
+            color_name = self.closest_color_name((mean_color[0], mean_color[1], mean_color[2]))
+
+            # Draw label
+            cv2.putText(image, f"{color_name}, {shape_name}",
+                        (x_mid - 40, y_mid), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
+
+        return image
+
+    def closest_color_name(self, bgr):
+        """
+        Detects the closest color using HSV thresholds.
+        Returns a basic color name.
+        """
+        # Convert the RGB (actually OpenCV uses BGR) to HSV
+        b, g, r = bgr
+        color_bgr = np.uint8([[[b, g, r]]])
+        hsv = cv2.cvtColor(color_bgr, cv2.COLOR_BGR2HSV)[0][0]
+        h, s, v = hsv
+
+        # Define HSV ranges for basic colors
+        # Hue values in OpenCV range from 0 to 179
+        color_ranges = {
+            "red":       [(0, 70, 50), (10, 255, 255)],
+            "red2":      [(170, 70, 50), (180, 255, 255)],
+            "orange":    [(11, 70, 50), (20, 255, 255)],
+            "yellow":    [(21, 70, 50), (35, 255, 255)],
+            "green":     [(36, 70, 50), (85, 255, 255)],
+            "cyan":      [(86, 70, 50), (100, 255, 255)],
+            "blue":      [(101, 70, 50), (130, 255, 255)],
+            "purple":    [(131, 70, 50), (180, 255, 255)],
+            "white":     [(0, 0, 200), (180, 40, 255)],
+            "gray":      [(0, 0, 40), (180, 40, 200)],
+            "black":     [(0, 0, 0), (180, 255, 40)]
+        }
+
+        for name, (lower, upper) in color_ranges.items():
+            lower_np = np.array(lower, dtype=np.uint8)
+            upper_np = np.array(upper, dtype=np.uint8)
+            if (lower_np[0] <= h <= upper_np[0] and
+                lower_np[1] <= s <= upper_np[1] and
+                lower_np[2] <= v <= upper_np[2]):
+                # Merge "red" and "red2"
+                if name == "red2":
+                    name = "red"
+                return name
+
+        return "unknown"
 
     def release(self):
         """Release camera resource if open."""
