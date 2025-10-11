@@ -1,0 +1,38 @@
+# =====================================
+# Python Project Git Ignore
+# =====================================
+
+# --- Lokale Setup-Dateien ---
+# (sollen nicht auf GitHub landen)
+setup_local_env.py
+config.ini
+libs/
+
+# --- Python-Cache-Dateien ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Virtuelle Umgebungen ---
+.venv/
+venv/
+env/
+ENV/
+
+# --- IDE / Editor Dateien ---
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# --- OS-Systemdateien ---
+.DS_Store
+Thumbs.db
+
+# --- Logs & temporäre Dateien ---
+*.log
+*.tmp
+*.bak
+
+# --- Jupyter Notebook Checkpoints ---
+.ipynb_checkpoints/
