@@ -1,38 +1,38 @@
 # =====================================
-# Python Project Git Ignore
+# Software Engineering project Git Ignore
 # =====================================
 
-# --- Lokale Setup-Dateien ---
-# (sollen nicht auf GitHub landen)
+# Local setup files:
 setup_local_env.py
 config.ini
 libs/
 
-# --- Python-Cache-Dateien ---
+# Python-Cache-files:
 __pycache__/
 *.py[cod]
 *$py.class
 
-# --- Virtuelle Umgebungen ---
+# Virtuale enviroment:
 .venv/
 venv/
 env/
 ENV/
 
-# --- IDE / Editor Dateien ---
+# IDE / Editor files:
 .vscode/
 .idea/
 *.sublime-project
 *.sublime-workspace
 
-# --- OS-Systemdateien ---
+# OS-Systemfiles:
 .DS_Store
 Thumbs.db
 
-# --- Logs & temporäre Dateien ---
+# Logs and temporary files:
 *.log
 *.tmp
 *.bak
+logs/*.csv
 
-# --- Jupyter Notebook Checkpoints ---
+# Jupyter Notebook Checkpoints:
 .ipynb_checkpoints/
