@@ -14,6 +14,7 @@ import cv2
 import os
 import numpy as np
 from log_data import DataLogger
+import ShapeSpeaker
 
 
 # Setup class:
@@ -108,6 +109,8 @@ class ImageProcessor:
         # Define the boundarys for the required area:
         MIN_AREA = 5000
         MAX_AREA = 500000
+        
+    
 
         # Search for the valide detected contours:
         for _, contour in enumerate(contours):
@@ -152,6 +155,8 @@ class ImageProcessor:
                     5: "Pentagon",
                     6: "Hexagon"
                 }.get(len(approx), "Unknown")
+            
+    
 
             # Compute average color inside contour:
             mask = np.zeros(image.shape[:2], dtype=np.uint8)
