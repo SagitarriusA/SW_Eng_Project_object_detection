@@ -189,7 +189,7 @@ class ImageProcessor:
             "green":     [(36, 70, 50), (85, 255, 255)],
             "cyan":      [(86, 70, 50), (100, 255, 255)],
             "blue":      [(101, 70, 50), (130, 255, 255)],
-            "purple":    [(131, 70, 50), (180, 255, 255)],
+            "violet":    [(131, 70, 50), (180, 255, 255)],
             "white":     [(0, 0, 200), (180, 40, 255)],
             "gray":      [(0, 0, 40), (180, 40, 200)],
             "black":     [(0, 0, 0), (180, 255, 40)]
@@ -238,7 +238,7 @@ if __name__ == "__main__":
             while True:
                 # Collect the current frame and start the processing:
                 frame = processor.get_frame()
-                processed = processor.process_frame(frame)
+                processed, _ = processor.process_frame(frame)
 
                 # Display the result:
                 cv2.imshow("Processed Frame", processed)
@@ -253,7 +253,7 @@ if __name__ == "__main__":
             print("Processing static image (press any key to close)")
             # Collect the current frame and start the processing on the image:
             frame = processor.get_frame()
-            processed = processor.process_frame(frame)
+            processed, _ = processor.process_frame(frame)
 
             # Wait for the user to close the window:
             cv2.imshow("Processed Image", processed)
