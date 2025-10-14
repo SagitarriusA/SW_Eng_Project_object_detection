@@ -81,3 +81,65 @@ def main():
 
 if __name__ == "__main__":
     main()
+#!/usr/bin/env python3
+
+"""
+file: main.py
+description: Main file to read and process the input stream of a camera or a given image
+author: Bauer Ryoya, Walter Julian, Willmann York
+date: 2025-10-11
+version: 1.0
+dependencies: argparse, os, sys, PyQt5.QtWidgets
+classes: ImageProcessor, GeometricOpjectsGUI
+"""
+
+import argparse
+import os
+import sys
+from PyQt5.QtWidgets import QApplication
+from image_processing import ImageProcessor
+from GUI import GeometricObjectsGUI
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Read from camera or image folder.")
+    parser.add_argument("--camera", action="store_true", help="Use camera device 0")
+    parser.add_argument("--image", action="store_true", help="Process all images in /images/")
+    args = parser.parse_args()
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    images_dir = os.path.join(script_dir, "../images")
+
+    app = QApplication(sys.argv)
+
+    if args.camera:
+        # Use camera device 0
+        from image_processing import ImageProcessor
+        processor = ImageProcessor(cam_device=0, image_path=None)
+        gui = GeometricObjectsGUI(processor=processor, is_camera=True)
+        gui.show()
+        sys.exit(app.exec_())
+
+    elif args.image:
+        # Collect all image paths in the folder
+        image_files = sorted([
+            os.path.join(images_dir, f)
+            for f in os.listdir(images_dir)
+            if f.lower().endswith((".png", ".jpg", ".jpeg", ".bmp"))
+        ])
+
+        if not image_files:
+            print(f"[ERROR] No images found in {images_dir}")
+            return
+
+        # Initialize the GUI with the list of images
+        gui = GeometricObjectsGUI(processor=None, is_camera=False, image_list=image_files)
+        gui.show()
+        sys.exit(app.exec_())
+
+    else:
+        print("[ERROR] Please specify either --camera or --image")
+        return
+
+if __name__ == "__main__":
+    main()

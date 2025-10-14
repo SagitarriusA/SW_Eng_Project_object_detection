@@ -110,7 +110,7 @@ class ImageProcessor:
         MIN_AREA = 5000
         MAX_AREA = 500000
         
-    
+        shapes_count = {}
 
         # Search for the valide detected contours:
         for _, contour in enumerate(contours):
@@ -156,7 +156,7 @@ class ImageProcessor:
                     6: "Hexagon"
                 }.get(len(approx), "Unknown")
             
-    
+            shapes_count[shape_name] = shapes_count.get(shape_name, 0) +1
 
             # Compute average color inside contour:
             mask = np.zeros(image.shape[:2], dtype=np.uint8)
@@ -171,7 +171,7 @@ class ImageProcessor:
 
             self.logging.log(shape_name, color_name)
         
-        return image
+        return image, shapes_count
 
     def closest_color_name(self, bgr):
         # Convert the BGR values to HSV:
