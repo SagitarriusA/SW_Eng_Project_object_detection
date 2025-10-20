@@ -16,7 +16,9 @@ from datetime import datetime
 class DataLogger:
     def __init__(self):
         # Generate the dir for the logs if it's still missing:
-        self.project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        self.project_root = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..")
+        )
         self.log_dir = os.path.join(self.project_root, "logs")
         os.makedirs(self.log_dir, exist_ok=True)
 
@@ -31,7 +33,7 @@ class DataLogger:
         except (PermissionError, OSError) as e:
             print(f"[LOG ERROR] Could not write to {self.log_path}: {e}")
         else:
-            print(f'Started logging to {self.log_path}')
+            print(f"Started logging to {self.log_path}")
 
     def log(self, shape, color):
         # Write the current time, detected shape and color into the csv file:
@@ -49,7 +51,7 @@ if __name__ == "__main__":
         logging = DataLogger()
     except PermissionError as e:
         print(f"[ERROR] {e}")
-    
+
     else:
         # Test the logging with a few logs:
         logging.log("circle", "red")
