@@ -31,7 +31,6 @@ def main():
 
     if args.camera:
         # Use camera device 0
-        from image_processing import ImageProcessor
         processor = ImageProcessor(cam_device=0, image_path=None)
         gui = GeometricObjectsGUI(processor=processor, is_camera=True)
         gui.show()
