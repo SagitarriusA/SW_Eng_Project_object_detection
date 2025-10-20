@@ -1,3 +1,14 @@
+#!/usr/bin/env python3
+
+"""
+file: setup_local_env.py
+description: Setup file to install the librarys (packages) into the venv
+author: Bauer Ryoya, Walter Julian, Willmann York
+date: 2025-10-20
+version: 1.0
+dependencies: configparser, subprocess, os, sys
+"""
+
 import configparser
 import subprocess
 import sys
