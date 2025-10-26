@@ -5,7 +5,9 @@ file: log_data.py
 description: File that logs the detected geometries into the csv file
 author: Bauer Ryoya, Walter Julian, Willmann York
 date: 2025-10-11
-version: 1.0
+date: 2025-10-26
+version: 1.1
+changes: typo-changes according to Pylint
 dependencies: os, datetime
 """
 

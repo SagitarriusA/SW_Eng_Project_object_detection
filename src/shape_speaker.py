@@ -5,15 +5,18 @@ file: shape_speaker.py
 description: a file to convert the shape and color name to TTS and play it if recomended
 author: Bauer Ryoya, Walter Julian, Willmann York
 date: 2025-10-12
-version: 1.0
-dependencies: os, sys, gtts, playsound
+date: 1025-10-26
+version: 1.1
+changes: typo-changes according to Pylint
+dependencies: __future__, os, sys, gtts, playsound
 """
 
-import os
-import sys
-from gtts import gTTS
-from playsound import playsound
+from __future__ import annotations
 
+import os
+from typing import Optional
+from gtts import gTTS  # type: ignore
+from playsound import playsound  # type: ignore
 
 # Converts detected shapes and colors into spoken audio using gTTS:
 class ShapeSpeaker:
@@ -27,7 +30,7 @@ class ShapeSpeaker:
         self.lang = lang
         os.makedirs(self.output_dir, exist_ok=True)
 
-    def describe_shapes(self, shapes_count: dict) -> str:
+    def describe_shapes(self, shapes_count: dict) -> Optional[str]:
         # Takes a dict like and creates a descriptive sentence:
         if not shapes_count:
             return None

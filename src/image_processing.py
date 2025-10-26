@@ -5,7 +5,9 @@ file: image_processing.py
 description: File that contains the class for the processing of the frames
 author: Bauer Ryoya, Walter Julian, Willmann York
 date: 2025-10-11
-version: 1.0
+date: 2025-10-26
+version: 1.1
+changes: typo-changes according to Pylint
 dependencies: OpenCV (cv2), os, numpy
 classes: DataLogger
 """

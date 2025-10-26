@@ -5,7 +5,9 @@ file: GUI.py
 description: GUI to display the processed frame in the GUI and the amount of detected shapes
 author: Bauer Ryoya, Walter Julian, Willmann York
 date: 2025-10-12
-version: 1.0
+date: 2025-10-26
+version: 1.1
+changes: typo-changes according to Pylint
 dependencies: OpenCV (cv2), os, sys, PyQt5.QtWidgets, PyQt5.QtGui, PyQt5.QtCore
 classes: ImageProcessor
 """
