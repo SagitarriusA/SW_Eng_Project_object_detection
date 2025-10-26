@@ -7,7 +7,7 @@ author: Bauer Ryoya, Walter Julian, Willmann York
 date: 2025-10-11
 version: 1.0
 dependencies: argparse, os, sys, PyQt5.QtWidgets
-classes: ImageProcessor, GeometricOpjectsGUI
+classes: ImageProcessor, GeometricObjectsGui
 """
 
 import argparse
@@ -15,10 +15,15 @@ import os
 import sys
 from PyQt5.QtWidgets import QApplication
 from image_processing import ImageProcessor
-from GUI import GeometricObjectsGUI
+from gui import GeometricObjectsGui
 
 
 def main():
+    """Entry point for the program.
+
+    Parses command-line arguments to read from the camera or an image folder
+    and starts the corresponding processing.
+    """
     parser = argparse.ArgumentParser(description="Read from camera or image folder.")
     parser.add_argument("--camera", action="store_true", help="Use camera device 0")
     parser.add_argument(
@@ -34,7 +39,7 @@ def main():
     if args.camera:
         # Use camera device 0
         processor = ImageProcessor(cam_device=0, image_path=None)
-        gui = GeometricObjectsGUI(processor=processor, is_camera=True)
+        gui = GeometricObjectsGui(processor=processor, is_camera=True)
         gui.show()
         sys.exit(app.exec_())
 
@@ -60,7 +65,7 @@ def main():
             return
 
         # Initialize the GUI with the list of images
-        gui = GeometricObjectsGUI(
+        gui = GeometricObjectsGui(
             processor=None, is_camera=False, image_list=image_files
         )
         gui.show()

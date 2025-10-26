@@ -1,0 +1,5 @@
+[TYPECHECK]
+ignored-modules=PyQt5,PyQt5.QtWidgets,PyQt5.QtGui,PyQt5.QtCore
+
+[MESSAGES CONTROL]
+disable=C0103, C0114, C0115, C0116, E0611, E1101
