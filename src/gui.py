@@ -83,8 +83,9 @@ class ControlPanel(QWidget):
 
     def __init__(self, gui_ref):
         super().__init__()
-        self.gui = gui_ref  # parent reference to GeometricObjectsGui
-
+        """parent reference to GeometricObjectsGui"""
+        self.gui = gui_ref
+        
         self.stop_button = QPushButton("Close application")
         self.stop_button.clicked.connect(self.gui.close)
 
@@ -152,7 +153,7 @@ class GeometricObjectsGui(QWidget):
         elif self.image_list:
             self.load_image(self.image_list[self.current_index])
 
-    # ---------------- Core Logic ----------------
+    # --- Core Logic ---
     def load_image(self, path):
         try:
             processor = ImageProcessor(cam_device=None, image_path=path)
@@ -183,7 +184,7 @@ class GeometricObjectsGui(QWidget):
             print("[WARN] No frame received from camera.")
         self.timer.start(0)
 
-    # ---------------- Qt Events ----------------
+    # --- Qt Events ---
     def closeEvent(self, event):
         if self.is_camera and self.processor:
             self.timer.stop()

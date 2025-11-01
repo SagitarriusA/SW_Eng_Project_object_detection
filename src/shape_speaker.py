@@ -12,26 +12,26 @@ dependencies: __future__, os, sys, gtts, playsound
 """
 
 from __future__ import annotations
-
 import os
 from typing import Optional
 from gtts import gTTS  # type: ignore
 from playsound import playsound  # type: ignore
 
-# Converts detected shapes and colors into spoken audio using gTTS:
+
 class ShapeSpeaker:
+    """Converts detected shapes and colors into spoken audio using gTTS:"""
     def __init__(self, output_dir="sounds", lang="en"):
-        # Get absolute path to the script's directory
+        """Get absolute path to the script's directory"""
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        # Move one level up (project root)
+        """Move one level up (project root)"""
         project_root = os.path.dirname(script_dir)
-        # Place sounds folder inside project root
+        """Place sounds folder inside project root"""
         self.output_dir = os.path.join(project_root, output_dir)
         self.lang = lang
         os.makedirs(self.output_dir, exist_ok=True)
 
     def describe_shapes(self, shapes_count: dict) -> Optional[str]:
-        # Takes a dict like and creates a descriptive sentence:
+        """Takes a dict like and creates a descriptive sentence:"""
         if not shapes_count:
             return None
 
@@ -48,7 +48,7 @@ class ShapeSpeaker:
         return text
 
     def generate_speech(self, shapes_colors: dict, filename="detected_shapes.mp3"):
-        # Generates an mp3 file describing the shapes and colors:
+        """Generates an mp3 file describing the shapes and colors:"""
         text = self.describe_shapes(shapes_colors)
 
         if text is None:
@@ -61,15 +61,22 @@ class ShapeSpeaker:
         return output_path
 
     def play_audio(self, filepath: str):
-        # Play the generated audio file:
+        """Play the generated audio file:"""
         if not os.path.exists(filepath):
             print(f"[ERROR] File not found: {filepath}")
             return
-
-        playsound(filepath)
+        try:
+            # blocks until finished
+            playsound(filepath) 
+        finally:
+            # Best effort cleanup; ignore if still locked for a moment
+            try:
+                os.remove(filepath)
+            except PermissionError:
+                pass
 
     def speak(self, shapes_count: dict):
-        # Generate and play audio for the shapes and colors:
+        """Generate and play audio for the shapes and colors:"""
         path = self.generate_speech(shapes_count)
         print(f"path: {path}")
         self.play_audio(path)
