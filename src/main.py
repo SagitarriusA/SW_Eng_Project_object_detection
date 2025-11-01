@@ -8,13 +8,14 @@ date: 2025-10-11
 date: 2025-10-26
 version: 1.1
 changes: typo-changes according to Pylint
-dependencies: argparse, os, sys, PyQt5.QtWidgets
+dependencies: argparse, os, sys, PyQt5.QtWidgets, numpy
 classes: ImageProcessor, GeometricObjectsGui
 """
 
 import argparse
 import os
 import sys
+import numpy as np
 from PyQt5.QtWidgets import QApplication
 from image_processing import ImageProcessor
 from gui import GeometricObjectsGui
@@ -74,9 +75,21 @@ def main() -> None:
             print(f"[ERROR] No images found in {images_dir}")
             return
 
+        try:
+            processor = ImageProcessor(image_path=image_files[0])
+        except (RuntimeError, FileNotFoundError, ValueError, PermissionError) as e:
+            print(f"[ERROR] {e}")
+
+        images: list[tuple[np.ndarray, dict[str, int]]] = []
+
+        for path in image_files:
+            image = processor.load_image(path)
+            image, shapes_count = processor.process_frame(image)
+            images.append((image, shapes_count))
+
         # Initialize the GUI with the list of images
         gui = GeometricObjectsGui(
-            processor=None, is_camera=False, image_list=image_files
+            processor=processor, is_camera=False, image_list=images
         )
         gui.show()
         sys.exit(app.exec_())

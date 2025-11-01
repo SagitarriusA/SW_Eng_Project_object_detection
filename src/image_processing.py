@@ -81,24 +81,28 @@ class ImageProcessor:
             print("Camera initialized successfully.")
 
         elif self.image_path is not None:
-            print(f"Loading image from {self.image_path}")
-
-            # Raise an error if the path is invalide:
-            if not os.path.exists(self.image_path):
-                raise FileNotFoundError(f"Image not found: {self.image_path}")
-
-            # Read the image:
-            self.image = cv2.imread(self.image_path)
-
-            # Raise an error if the image exists, but the method failed to read it:
-            if self.image is None:
-                raise ValueError(f"Failed to read image: {self.image_path}")
-
-            print("Image loaded successfully.")
-
+            _ = self.load_image(self.image_path)
         else:
             # Raise an error if no input source (user didn't define the source / default failed):
             raise ValueError("No input source provided (camera or image).")
+
+    def load_image(self, path: str) -> np.ndarray:
+        print(f"Loading image from {path}")
+
+        # Raise an error if the path is invalide:
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Image not found: {path}")
+
+        # Read the image:
+        self.image = cv2.imread(path)
+
+        # Raise an error if the image exists, but the method failed to read it:
+        if self.image is None:
+            raise ValueError(f"Failed to read image: {path}")
+
+        print("Image loaded successfully.")
+
+        return self.image
 
     def get_frame(self) -> Optional[np.ndarray]:
         """

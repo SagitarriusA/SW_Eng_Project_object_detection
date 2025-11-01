@@ -14,7 +14,7 @@ classes: ImageProcessor
 import os
 import sys
 import argparse
-from typing import Optional, List, Dict
+from typing import Optional, Dict
 import numpy as np
 import cv2
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QVBoxLayout, QPushButton
@@ -179,7 +179,7 @@ class GeometricObjectsGui(QWidget):
         self,
         processor: Optional[ImageProcessor] = None,
         is_camera: bool = False,
-        image_list: Optional[List[str]] = None,
+        image_list: Optional[list[tuple[np.ndarray, dict[str, int]]]] = None,
     ) -> None:
         """
         Init function for the Geometric Objejcts GUI class
@@ -193,10 +193,18 @@ class GeometricObjectsGui(QWidget):
 
         self.processor = processor
         self.is_camera = is_camera
-        self.image_list = image_list or []
+        self.image_list = [img for img, _ in image_list] if image_list else []
         self.current_index = 0
+        self.frame_latest_shapes_count: Dict[int, Dict[str, int]] = {}
         self.latest_shapes_count: Dict[str, int] = {}
         self.speaker = ShapeSpeaker()
+
+        if image_list:
+            # Store each shape count using the image index as key
+            self.frame_latest_shapes_count = {
+                idx: shapes for idx, (_, shapes) in enumerate(image_list)
+            }
+            self.latest_shapes_count = self.frame_latest_shapes_count[0]
 
         self.setWindowTitle("Geometric Object Detection")
         self.resize(900, 700)
@@ -217,30 +225,13 @@ class GeometricObjectsGui(QWidget):
             self.timer.start(0)
             print("[INFO] Started camera stream.")
         elif self.image_list:
-            self.load_image(self.image_list[self.current_index])
-
-    def load_image(self, path: str) -> None:
-        """
-        Function to load the images from the path
-
-        Args: path (str)
-
-        Return: None
-        """
-
-        try:
-            processor = ImageProcessor(cam_device=None, image_path=path)
-            frame: Optional[np.ndarray] = processor.get_frame()
-            assert isinstance(
-                frame, np.ndarray
-            ), f"Expected an ndarray, got {type(frame)}"
-
-            frame, shapes_count = processor.process_frame(frame)
-            self.display.display_image(frame)
-            self.display.update_shapes_label(shapes_count)
-            self.latest_shapes_count = shapes_count
-        except Exception as e:  # pylint: disable=broad-exception-caught
-            print(f"[ERROR] Failed to load {path}: {e}")
+            self.display.display_image(self.image_list[self.current_index])
+            self.display.update_shapes_label(
+                self.frame_latest_shapes_count[self.current_index]
+            )
+            self.latest_shapes_count = self.frame_latest_shapes_count[
+                self.current_index
+            ]
 
     def next_image(self):
         """
@@ -255,7 +246,11 @@ class GeometricObjectsGui(QWidget):
             return
 
         self.current_index = (self.current_index + 1) % len(self.image_list)
-        self.load_image(self.image_list[self.current_index])
+        self.display.display_image(self.image_list[self.current_index])
+        self.display.update_shapes_label(
+            self.frame_latest_shapes_count[self.current_index]
+        )
+        self.latest_shapes_count = self.frame_latest_shapes_count[self.current_index]
 
     def update_frame(self) -> None:
         """
@@ -311,36 +306,68 @@ class GeometricObjectsGui(QWidget):
 
 
 if __name__ == "__main__":
-    # Setup the parser for the console input:
-    parser = argparse.ArgumentParser(description="Geometric Objects Detection GUI")
+    # Setup the argparser for the console input:
+    parser = argparse.ArgumentParser(description="Read from camera or image folder.")
     parser.add_argument("--camera", action="store_true", help="Use camera device 0")
     parser.add_argument(
-        "--images", action="store_true", help="Process all images in /images/"
+        "--image", action="store_true", help="Process all images in /images/"
     )
     args = parser.parse_args()
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     images_dir = os.path.join(script_dir, "../images")
+
     app = QApplication(sys.argv)
 
     if args.camera:
-        proc = ImageProcessor(cam_device=0, image_path=None)
-        gui = GeometricObjectsGui(processor=proc, is_camera=True)
-    elif args.images:
+        # Use camera device 0
+        try:
+            processor_test_class = ImageProcessor(cam_device=0, image_path=None)
+        except (RuntimeError, FileNotFoundError, ValueError, PermissionError) as e:
+            print(f"[ERROR] {e}")
+
+        gui = GeometricObjectsGui(processor=processor_test_class, is_camera=True)
+        gui.show()
+        sys.exit(app.exec_())
+
+    elif args.image:
+        # Collect all image paths in the folder
         image_files = sorted(
             [
                 os.path.join(images_dir, f)
                 for f in os.listdir(images_dir)
-                if f.lower().endswith((".png", ".jpg", ".jpeg", ".bmp"))
+                if f.lower().endswith(
+                    (
+                        ".png",
+                        ".jpg",
+                        ".jpeg",
+                        ".bmp",
+                    )
+                )
             ]
         )
+
         if not image_files:
             print(f"[ERROR] No images found in {images_dir}")
-            sys.exit(1)
-        gui = GeometricObjectsGui(image_list=image_files, is_camera=False)
-    else:
-        print("[ERROR] Please specify either --camera or --images")
-        sys.exit(1)
 
-    gui.show()
-    sys.exit(app.exec_())
+        try:
+            processor_test_class = ImageProcessor(image_path=image_files[0])
+        except (RuntimeError, FileNotFoundError, ValueError, PermissionError) as e:
+            print(f"[ERROR] {e}")
+
+        images: list[tuple[np.ndarray, dict[str, int]]] = []
+
+        for path in image_files:
+            image = processor_test_class.load_image(path)
+            image, shapes_count_camera = processor_test_class.process_frame(image)
+            images.append((image, shapes_count_camera))
+
+        # Initialize the GUI with the list of images
+        gui = GeometricObjectsGui(
+            processor=processor_test_class, is_camera=False, image_list=images
+        )
+        gui.show()
+        sys.exit(app.exec_())
+
+    else:
+        print("[ERROR] Please specify either --camera or --image")
