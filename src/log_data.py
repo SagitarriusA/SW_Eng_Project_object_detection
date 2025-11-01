@@ -4,10 +4,9 @@
 file: log_data.py
 description: File that logs the detected geometries into the csv file
 author: Bauer Ryoya, Walter Julian, Willmann York
-date: 2025-10-11
-date: 2025-10-26
-version: 1.1
-changes: typo-changes according to Pylint
+date: 2025-11-01
+version: 1.2
+changes: typo-changes according to Pylint, styling changes
 dependencies: os, datetime
 """
 
@@ -16,8 +15,12 @@ from datetime import datetime
 
 
 class DataLogger:
+    """Class for the data logging"""
+
     def __init__(self):
-        """Generate the dir for the logs if it's still missing:"""
+        """Init function for the class"""
+
+        # Generate the dir for the logs if it's still missing:
         self.project_root = os.path.abspath(
             os.path.join(os.path.dirname(__file__), "..")
         )
@@ -37,8 +40,16 @@ class DataLogger:
         else:
             print(f"Started logging to {self.log_path}")
 
-    def log(self, shape, color):
-        """Write the current time, detected shape and color into the csv file:"""
+    def log(self, shape: str, color: str) -> None:
+        """
+        Public function to log the shapename and mean color
+
+        arg: shape (str), color (str)
+
+        return: None
+        """
+
+        # Write the current time, detected shape and color into the csv file:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         try:

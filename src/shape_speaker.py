@@ -23,6 +23,7 @@ import pygame  # pylint: disable=wrong-import-position
 
 
 
+# Converts detected shapes and colors into spoken audio using gTTS:
 class ShapeSpeaker:
     """Class for the sound module"""
 
