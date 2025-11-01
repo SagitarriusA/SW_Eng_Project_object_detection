@@ -5,39 +5,63 @@ file: image_processing.py
 description: File that contains the class for the processing of the frames
 author: Bauer Ryoya, Walter Julian, Willmann York
 date: 2025-10-11
-date: 2025-10-26
-version: 1.1
-changes: typo-changes according to Pylint
+date: 2025-11-1
+version: 1.2
+changes: typo-changes according to Pylint, style changes
 dependencies: OpenCV (cv2), os, numpy
 classes: DataLogger
 """
 
 import os
+from typing import Optional, Tuple, Dict, Sequence
 import cv2
 import numpy as np
 from log_data import DataLogger
 
-# Setup class:
-class ImageProcessor:
-    def __init__(self, cam_device=None, image_path=None):
-        # Setup variables:
-        self.cam_device = cam_device
-        self.image_path = image_path
-        self.cap = None
-        self.image = None
-        self.is_camera = False
 
+class ImageProcessor:
+    """Setup the class for the image processing with the input of the camera / the images"""
+
+    def __init__(
+        self, cam_device: Optional[int] = None, image_path: Optional[str] = None
+    ) -> None:
+        """
+        Init function for the class
+
+        args: cam_device (int, default = None), image_path (str, default = None)
+
+        return: None
+        """
+
+        self.cam_device: Optional[int] = cam_device
+        self.image_path: Optional[str] = image_path
+        self.cap: Optional[cv2.VideoCapture] = None
+        self.image: Optional[np.ndarray] = None
+        self.is_camera: bool = False
+
+        # Init the data logging:
         try:
             self.logging = DataLogger()
         except PermissionError as e:
             print(f"[ERROR] {e}")
+            raise
 
-        else:
-            # Init the source:
+        # Init the source:
+        try:
             self._init_source()
+        except (RuntimeError, FileNotFoundError, ValueError) as e:
+            print(f"[ERROR] Failed to initialize source: {e}")
+            raise
 
-    def _init_source(self):
-        # Init the cam / read the image:
+    def _init_source(self) -> None:
+        """
+        Private function to init the cam / read the images from the given path
+
+        args: None
+
+        return: None
+        """
+
         if self.cam_device is not None:
             print(f"Initializing camera device {self.cam_device}")
 
@@ -76,9 +100,19 @@ class ImageProcessor:
             # Raise an error if no input source (user didn't define the source / default failed):
             raise ValueError("No input source provided (camera or image).")
 
-    def get_frame(self):
+    def get_frame(self) -> Optional[np.ndarray]:
+        """
+        Public function to get a frame from the camera
+
+        args: None
+
+        return: np.ndarray if available, None otherwise
+        """
+
         # Get a single frame from camera or the loaded image:
         if self.is_camera:
+            # Check if self.cap is not None to be sure that the camera is initalized:
+            assert self.cap is not None, "Camera not initialized"
             ret, frame = self.cap.read()
 
             if not ret:
@@ -88,7 +122,17 @@ class ImageProcessor:
         return self.image
 
     # pylint: disable=too-many-locals
-    def process_frame(self, image):
+    def process_frame(self, image: np.ndarray) -> Tuple[np.ndarray, Dict[str, int]]:
+        """
+        Process a frame to detect shapes, label them with color, and count shapes.
+
+        Args: image: nDArray
+
+        Returns: Tuple containing:
+                    - Processed image nDArray
+                    - Dict mapping shape names to counts
+        """
+
         # If the user passes an invalide image / empty image raise an error:
         if image is None:
             raise RuntimeError("Error, no image found to process")
@@ -96,21 +140,21 @@ class ImageProcessor:
         # Preprocessing of the frame:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-        _, thresh = cv2.threshold(blurred, 220, 255, cv2.THRESH_BINARY)
+        _, binary = cv2.threshold(blurred, 220, 255, cv2.THRESH_BINARY)
 
         # Morphological cleanup:
         kernel = np.ones((5, 5), np.uint8)
-        thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
-        thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+        opened = cv2.morphologyEx(binary, cv2.MORPH_OPEN, kernel)
+        cleaned = cv2.morphologyEx(opened, cv2.MORPH_CLOSE, kernel)
 
         # Find contours:
-        contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(cleaned, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         # Define the boundarys for the required area:
         MIN_AREA = 5000
         MAX_AREA = 500000
 
-        shapes_count = {}
+        shapes_count: Dict[str, int] = {}
 
         # Search for the valide detected contours:
         for _, contour in enumerate(contours):
@@ -129,6 +173,7 @@ class ImageProcessor:
 
             # Compute centroid:
             M = cv2.moments(contour)
+
             if M["m00"] != 0:
                 x_mid = int(M["m10"] / M["m00"])
                 y_mid = int(M["m01"] / M["m00"])
@@ -156,16 +201,17 @@ class ImageProcessor:
                     6: "Hexagon",
                 }.get(len(approx), "Unknown")
 
+            # Update the dict with the shape count:
             shapes_count[shape_name] = shapes_count.get(shape_name, 0) + 1
 
             # Compute average color inside contour:
             mask = np.zeros(image.shape[:2], dtype=np.uint8)
-            cv2.drawContours(mask, [contour], -1, 255, -1)
+            cv2.drawContours(mask, [contour], -1, 255, -1)  # type: ignore
 
             mean_color = cv2.mean(image, mask=mask)
 
-            color_name = self.closest_color_name(
-                (mean_color[0], mean_color[1], mean_color[2])
+            color_name = self._closest_color_name(
+                (int(mean_color[0]), int(mean_color[1]), int(mean_color[2]))
             )
 
             # Draw label:
@@ -183,12 +229,18 @@ class ImageProcessor:
 
         return image, shapes_count
 
-    def closest_color_name(self, bgr):  # pylint: disable=too-many-locals
+    def _closest_color_name(self, bgr: Sequence[int]) -> str:
+        """
+        Function to calculate the mean color of the shape
+
+        args: bgr (Tuple[int, int, int])
+
+        return: color (str)
+        """
         # Convert the BGR values to HSV:
         b, g, r = bgr
-        color_bgr = np.uint8([[[b, g, r]]])
-        hsv = cv2.cvtColor(color_bgr, cv2.COLOR_BGR2HSV)[0][0]
-        h, s, v = hsv
+        color_bgr: np.ndarray = np.array([[[b, g, r]]], dtype=np.uint8)
+        hsv: np.ndarray = cv2.cvtColor(color_bgr, cv2.COLOR_BGR2HSV)[0][0]
 
         # Define HSV ranges for basic colors:
         color_ranges = {
@@ -205,25 +257,24 @@ class ImageProcessor:
             "black": [(0, 0, 0), (180, 255, 40)],
         }
 
-        # Search for the best match between the mean color value and the defined intervall for the HSV colors:
+        # Search for the best matching color:
         for name, (lower, upper) in color_ranges.items():
             lower_np = np.array(lower, dtype=np.uint8)
             upper_np = np.array(upper, dtype=np.uint8)
 
-            if (
-                lower_np[0] <= h <= upper_np[0]
-                and lower_np[1] <= s <= upper_np[1]
-                and lower_np[2] <= v <= upper_np[2]
-            ):
-
-                if name == "red2":
-                    name = "red"
-                return name
+            if np.all(lower_np <= hsv) and np.all(hsv <= upper_np):
+                return "red" if name == "red2" else name
 
         return "unknown"
 
     def release(self):
-        # Release camera resource if open:
+        """
+        Release function to shut the camera down
+
+        args: None
+
+        return: None
+        """
         if self.cap:
             self.cap.release()
             print("Camera released.")
@@ -240,7 +291,7 @@ if __name__ == "__main__":
 
     try:
         processor = ImageProcessor(cam_device=cam_dev, image_path=img_path)
-    except (FileNotFoundError, ValueError, RuntimeError) as e:
+    except (RuntimeError, FileNotFoundError, ValueError, PermissionError) as e:
         print(f"[ERROR] {e}")
 
     else:
@@ -250,6 +301,7 @@ if __name__ == "__main__":
             while True:
                 # Collect the current frame and start the processing:
                 img_frame = processor.get_frame()
+                assert img_frame is not None, "No frame available"
                 processed, _ = processor.process_frame(img_frame)
 
                 # Display the result:
@@ -265,6 +317,7 @@ if __name__ == "__main__":
             print("Processing static image (press any key to close)")
             # Collect the current frame and start the processing on the image:
             img_frame = processor.get_frame()
+            assert img_frame is not None, "No frame available"
             processed, _ = processor.process_frame(img_frame)
 
             # Wait for the user to close the window:
