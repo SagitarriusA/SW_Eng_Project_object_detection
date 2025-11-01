@@ -302,7 +302,7 @@ class GeometricObjectsGui(QWidget):
         if event and event.key() == Qt.Key_Q:  # type: ignore[attr-defined]
             self.close()
         else:
-            super().keyPressEvent(event)
+            super().keyPressEvent(event)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

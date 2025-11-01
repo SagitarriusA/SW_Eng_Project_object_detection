@@ -11,7 +11,6 @@ dependencies: __future__, os, sys, gtts, playsound, time
 """
 
 from __future__ import annotations
-
 import os
 from typing import Optional
 from gtts import gTTS  # type: ignore
@@ -33,9 +32,9 @@ class ShapeSpeaker:
 
         # Get absolute path to the script's directory
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        # Move one level up (project root)
+        """Move one level up (project root)"""
         project_root = os.path.dirname(script_dir)
-        # Place sounds folder inside project root
+        """Place sounds folder inside project root"""
         self.output_dir = os.path.join(project_root, output_dir)
         self.lang = lang
         os.makedirs(self.output_dir, exist_ok=True)
