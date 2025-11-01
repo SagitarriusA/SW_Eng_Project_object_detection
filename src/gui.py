@@ -76,8 +76,8 @@ class ImageDisplayWidget(QWidget):
     def resizeEvent(self, event):
         self._update_pixmap()
         super().resizeEvent(event)
-        
-        
+
+
 class ControlPanel(QWidget):
     """Control panel with buttons and actions."""
 
@@ -195,7 +195,7 @@ class GeometricObjectsGui(QWidget):
         if event and event.key() == Qt.Key_Q:  # type: ignore[attr-defined]
             self.close()
         else:
-            super().keyPressEvent(event)
+            super().keyPressEvent(event)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
