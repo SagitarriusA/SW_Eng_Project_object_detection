@@ -14,13 +14,15 @@ import subprocess
 import sys
 import os
 
+
 def install_local_requirements():
     """Installs local dependencies"""
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read("config.ini")
 
     requirements = [
-        pkg.strip() for pkg in config.get('install', 'requirements', fallback='').split(',')
+        pkg.strip()
+        for pkg in config.get("install", "requirements", fallback="").split(",")
         if pkg.strip()
     ]
 
@@ -31,7 +33,7 @@ def install_local_requirements():
     # remove the PIP_USER env var to prevent the --user conflict
     env = os.environ.copy()
     env.pop("PIP_USER", None)
-    
+
     # build final pip command
     cmd = [sys.executable, "-m", "pip", "install", "--upgrade", *requirements]
 
@@ -47,7 +49,8 @@ def setup_pylint_config():
     if not os.path.exists(pylintrc_path):
         print("Creating default .pylintrc for PyQt5 and project classes...")
         with open(pylintrc_path, "w", encoding="utf-8") as f:
-            f.write("""[MASTER]
+            f.write(
+                """[MASTER]
 ignore=venv
 
 [TYPECHECK]
@@ -65,7 +68,8 @@ disable=
     E1101,  # no-member (PyQt5 dynamic attributes)
     R0903,  # too few public methods
 
-""")
+"""
+            )
     else:
         print(".pylintrc already exists – skipping creation.")
 
