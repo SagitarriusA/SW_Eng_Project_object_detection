@@ -17,7 +17,7 @@ from datetime import datetime
 
 class DataLogger:
     def __init__(self):
-        # Generate the dir for the logs if it's still missing:
+        """Generate the dir for the logs if it's still missing:"""
         self.project_root = os.path.abspath(
             os.path.join(os.path.dirname(__file__), "..")
         )
@@ -38,7 +38,7 @@ class DataLogger:
             print(f"Started logging to {self.log_path}")
 
     def log(self, shape, color):
-        # Write the current time, detected shape and color into the csv file:
+        """Write the current time, detected shape and color into the csv file:"""
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         try:

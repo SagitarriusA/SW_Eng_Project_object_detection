@@ -11,7 +11,6 @@ dependencies: __future__, os, sys, gtts, playsound, time
 """
 
 from __future__ import annotations
-
 import os
 import warnings
 from typing import Optional
@@ -23,7 +22,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="pygame.pkgdata")
 import pygame  # pylint: disable=wrong-import-position
 
 
-# Converts detected shapes and colors into spoken audio using gTTS:
+
 class ShapeSpeaker:
     """Class for the sound module"""
 
@@ -38,9 +37,9 @@ class ShapeSpeaker:
 
         # Get absolute path to the script's directory
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        # Move one level up (project root)
+        """Move one level up (project root)"""
         project_root = os.path.dirname(script_dir)
-        # Place sounds folder inside project root
+        """Place sounds folder inside project root"""
         self.output_dir = os.path.join(project_root, output_dir)
         self.lang = lang
         os.makedirs(self.output_dir, exist_ok=True)
