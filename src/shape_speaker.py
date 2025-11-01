@@ -4,24 +4,33 @@
 file: shape_speaker.py
 description: a file to convert the shape and color name to TTS and play it if recomended
 author: Bauer Ryoya, Walter Julian, Willmann York
-date: 2025-10-12
-date: 1025-10-26
-version: 1.1
-changes: typo-changes according to Pylint
-dependencies: __future__, os, sys, gtts, playsound
+date: 2025-11-01
+version: 1.2
+changes: typo-changes according to Pylint, style changes
+dependencies: __future__, os, sys, gtts, playsound, time
 """
 
 from __future__ import annotations
 
 import os
-
 from typing import Optional
 from gtts import gTTS  # type: ignore
 from playsound import playsound  # type: ignore
 
+
 # Converts detected shapes and colors into spoken audio using gTTS:
 class ShapeSpeaker:
-    def __init__(self, output_dir="sounds", lang="en"):
+    """Class for the sound module"""
+
+    def __init__(self, output_dir: str = "sounds", lang: str = "en") -> None:
+        """
+        Init function for the sound module
+
+        arg: output_dir (str), lang str
+
+        return: None
+        """
+
         # Get absolute path to the script's directory
         script_dir = os.path.dirname(os.path.abspath(__file__))
         # Move one level up (project root)
@@ -31,7 +40,15 @@ class ShapeSpeaker:
         self.lang = lang
         os.makedirs(self.output_dir, exist_ok=True)
 
-    def describe_shapes(self, shapes_count: dict) -> Optional[str]:
+    def _describe_shapes(self, shapes_count: dict) -> Optional[str]:
+        """
+        Private function to generate the string for the spoken output
+
+        arg: shape_count (dict)
+
+        return: text (str)
+        """
+
         # Takes a dict like and creates a descriptive sentence:
         if not shapes_count:
             return None
@@ -48,9 +65,19 @@ class ShapeSpeaker:
             )
         return text
 
-    def generate_speech(self, shapes_colors: dict, filename="detected_shapes.mp3"):
+    def _generate_speech(
+        self, shapes_colors: dict, filename: str = "detected_shapes.mp3"
+    ) -> Optional[str]:
+        """
+        Private function to convert the text to speech and save the file
+
+        args: shape_colors (dict), filename (str)
+
+        return: output_path (str)
+        """
+
         # Generates an mp3 file describing the shapes and colors:
-        text = self.describe_shapes(shapes_colors)
+        text = self._describe_shapes(shapes_colors)
 
         if text is None:
             return None
@@ -61,24 +88,46 @@ class ShapeSpeaker:
         print(f"[INFO] Audio saved to: {output_path}")
         return output_path
 
-    def play_audio(self, filepath: str):
-        # Play the generated audio file:
+    def play_audio(self, filepath: Optional[str] = None) -> None:
+        """
+        Function to play the audio file
+
+        args: filepath (str)
+
+        return: None
+        """
+
+        # Check if the path is a string:
+        assert isinstance(
+            filepath, str
+        ), f"Filepath must be a string, got {type(filepath)}"
+
         if not os.path.exists(filepath):
             print(f"[ERROR] File not found: {filepath}")
             return
+
         try:
-            playsound(filepath)  # blocks until finished
+            # blocks until finished:
+            playsound(filepath)
         finally:
-            # Best effort cleanup; ignore if still locked for a moment
+            # Delete the file to make sure that it is closed if the user wana call the speech twice:
             try:
                 os.remove(filepath)
             except PermissionError:
                 pass
 
-    def speak(self, shapes_count: dict):
+    def speak(self, shapes_count: dict) -> None:
+        """
+        Function to handle the input, concvert it to speech and play it
+
+        Args: shapes_count (dict)
+
+        Return: None
+        """
+
         # Generate and play audio for the shapes and colors:
-        path = self.generate_speech(shapes_count)
-        print(f"path: {path}")
+        path = self._generate_speech(shapes_count)
+
         self.play_audio(path)
 
 

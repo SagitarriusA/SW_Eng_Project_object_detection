@@ -13,7 +13,7 @@ classes: DataLogger
 """
 
 import os
-from typing import Optional, Tuple, Dict, Sequence
+from typing import Optional, Tuple, Dict, Sequence, cast
 import cv2
 import numpy as np
 from log_data import DataLogger
@@ -208,11 +208,12 @@ class ImageProcessor:
             mask = np.zeros(image.shape[:2], dtype=np.uint8)
             cv2.drawContours(mask, [contour], -1, 255, -1)  # type: ignore
 
-            mean_color = cv2.mean(image, mask=mask)
-
-            color_name = self._closest_color_name(
-                (int(mean_color[0]), int(mean_color[1]), int(mean_color[2]))
+            mean_color = cast(
+                Tuple[float, float, float, float], cv2.mean(image, mask=mask)
             )
+            b_f, g_f, r_f, _ = mean_color
+            b, g, r = int(b_f), int(g_f), int(r_f)
+            color_name = self._closest_color_name((b, g, r))
 
             # Draw label:
             cv2.putText(
