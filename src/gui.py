@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-file: GUI.py
+file: gui.py
 description: GUI to display the processed frame in the GUI and the amount of detected shapes
 author: Bauer Ryoya, Walter Julian, Willmann York
 date: 2025-10-12

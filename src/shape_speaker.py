@@ -14,6 +14,7 @@ dependencies: __future__, os, sys, gtts, playsound
 from __future__ import annotations
 
 import os
+
 from typing import Optional
 from gtts import gTTS  # type: ignore
 from playsound import playsound  # type: ignore
@@ -65,8 +66,14 @@ class ShapeSpeaker:
         if not os.path.exists(filepath):
             print(f"[ERROR] File not found: {filepath}")
             return
-
-        playsound(filepath)
+        try:
+            playsound(filepath)  # blocks until finished
+        finally:
+            # Best effort cleanup; ignore if still locked for a moment
+            try:
+                os.remove(filepath)
+            except PermissionError:
+                pass
 
     def speak(self, shapes_count: dict):
         # Generate and play audio for the shapes and colors:
