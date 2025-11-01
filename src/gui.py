@@ -83,7 +83,7 @@ class ControlPanel(QWidget):
 
     def __init__(self, gui_ref):
         super().__init__()
-        """parent reference to GeometricObjectsGui"""
+        # parent reference to GeometricObjectsGui
         self.gui = gui_ref
         
         self.stop_button = QPushButton("Close application")
