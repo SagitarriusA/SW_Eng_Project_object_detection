@@ -20,12 +20,16 @@ from image_processing import ImageProcessor
 from gui import GeometricObjectsGui
 
 
-def main():
-    """Entry point for the program.
-
-    Parses command-line arguments to read from the camera or an image folder
-    and starts the corresponding processing.
+def main() -> None:
     """
+    Function to run the code
+
+    args: None
+
+    return: None
+    """
+
+    # Setup the argparser for the console input:
     parser = argparse.ArgumentParser(description="Read from camera or image folder.")
     parser.add_argument("--camera", action="store_true", help="Use camera device 0")
     parser.add_argument(
@@ -40,7 +44,11 @@ def main():
 
     if args.camera:
         # Use camera device 0
-        processor = ImageProcessor(cam_device=0, image_path=None)
+        try:
+            processor = ImageProcessor(cam_device=0, image_path=None)
+        except (RuntimeError, FileNotFoundError, ValueError, PermissionError) as e:
+            print(f"[ERROR] {e}")
+
         gui = GeometricObjectsGui(processor=processor, is_camera=True)
         gui.show()
         sys.exit(app.exec_())
