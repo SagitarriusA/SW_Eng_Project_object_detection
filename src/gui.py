@@ -76,8 +76,8 @@ class ImageDisplayWidget(QWidget):
     def resizeEvent(self, event):
         self._update_pixmap()
         super().resizeEvent(event)
-
-
+        
+        
 class ControlPanel(QWidget):
     """Control panel with buttons and actions."""
 
