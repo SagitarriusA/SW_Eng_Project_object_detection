@@ -4,10 +4,9 @@
 file: main.py
 description: Main file to read and process the input stream of a camera or a given image
 author: Bauer Ryoya, Walter Julian, Willmann York
-date: 2025-10-11
-date: 2025-10-26
-version: 1.1
-changes: typo-changes according to Pylint
+date: 2025-11-02
+version: 1.2
+changes: typo-changes according to Pylint, styling changes
 dependencies: argparse, os, sys, PyQt5.QtWidgets, numpy
 classes: ImageProcessor, GeometricObjectsGui
 """

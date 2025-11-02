@@ -4,11 +4,10 @@
 file: image_processing.py
 description: File that contains the class for the processing of the frames
 author: Bauer Ryoya, Walter Julian, Willmann York
-date: 2025-10-11
-date: 2025-11-1
+date: 2025-11-2
 version: 1.2
 changes: typo-changes according to Pylint, style changes
-dependencies: OpenCV (cv2), os, numpy
+dependencies: OpenCV (cv2), os, numpy, typing
 classes: DataLogger
 """
 
@@ -87,6 +86,14 @@ class ImageProcessor:
             raise ValueError("No input source provided (camera or image).")
 
     def load_image(self, path: str) -> np.ndarray:
+        """
+        Function to load the image
+
+        Args: path (str)
+
+        Return: image (ndarray)
+        """
+
         print(f"Loading image from {path}")
 
         # Raise an error if the path is invalide:
@@ -133,8 +140,8 @@ class ImageProcessor:
         Args: image: nDArray
 
         Returns: Tuple containing:
-                    - Processed image nDArray
-                    - Dict mapping shape names to counts
+                    Processed image nDArray
+                    Dict mapping shape names to counts
         """
 
         # If the user passes an invalide image / empty image raise an error:
