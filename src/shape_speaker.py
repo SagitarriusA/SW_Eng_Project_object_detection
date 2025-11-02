@@ -12,9 +12,14 @@ dependencies: __future__, os, sys, gtts, playsound, time
 
 from __future__ import annotations
 import os
+import warnings
 from typing import Optional
 from gtts import gTTS  # type: ignore
-from playsound import playsound  # type: ignore
+
+# Ignore the deprecation warning from pygame.pkgdata; no newer pygame version available till now:
+warnings.filterwarnings("ignore", category=UserWarning, module="pygame.pkgdata")
+
+import pygame  # pylint: disable=wrong-import-position
 
 
 # Converts detected shapes and colors into spoken audio using gTTS:
@@ -105,15 +110,15 @@ class ShapeSpeaker:
             print(f"[ERROR] File not found: {filepath}")
             return
 
-        try:
-            # blocks until finished:
-            playsound(filepath)
-        finally:
-            # Delete the file to make sure that it is closed if the user wana call the speech twice:
-            try:
-                os.remove(filepath)
-            except PermissionError:
-                pass
+        pygame.mixer.init()
+        pygame.mixer.music.load(filepath)
+        pygame.mixer.music.play()
+
+        # Wait until done
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
+
+        pygame.mixer.quit()
 
     def speak(self, shapes_count: dict) -> None:
         """
