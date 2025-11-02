@@ -32,7 +32,8 @@ Thumbs.db
 *.log
 *.tmp
 *.bak
-logs/*.csv
+logs/
+sounds/
 
 # Jupyter Notebook Checkpoints:
 .ipynb_checkpoints/
