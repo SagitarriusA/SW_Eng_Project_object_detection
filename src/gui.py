@@ -4,11 +4,11 @@
 file: gui.py
 description: GUI to display the processed frame in the GUI and the amount of detected shapes
 author: Bauer Ryoya, Walter Julian, Willmann York
-date: 2025-11-1
+date: 2025-11-2
 version: 1.2
-changes: typo-changes according to Pylint
-dependencies: OpenCV (cv2), os, sys, PyQt5.QtWidgets, PyQt5.QtGui, PyQt5.QtCore, argparse
-classes: ImageProcessor
+changes: typo-changes according to Pylint, styling changes
+dependencies: os, sys, argparse, typing, numpy, OpenCV (cv2), PyQt5.QtWidgets, PyQt5.QtGui, PyQt5.QtCore
+classes: ImageProcessor, ShapeSpeaker
 """
 
 import os
@@ -113,7 +113,7 @@ class ImageDisplayWidget(QWidget):
         super().resizeEvent(event)
 
 
-class ControlPanel(QWidget):
+class ControlPanel(QWidget):  # pylint: disable=too-few-public-methods
     """Class to setup the control panel for the GUI"""
 
     def __init__(self, gui_ref):
@@ -160,7 +160,7 @@ class ControlPanel(QWidget):
         else:
             print("[INFO] No shapes detected yet.")
 
-    def _next_image(self):
+    def _next_image(self) -> None:
         """
         Private function to call the next image
 
@@ -172,7 +172,7 @@ class ControlPanel(QWidget):
         self.gui.next_image()
 
 
-class GeometricObjectsGui(QWidget):
+class GeometricObjectsGui(QWidget):  # pylint: disable=too-many-instance-attributes
     """Main application window"""
 
     def __init__(
@@ -233,7 +233,7 @@ class GeometricObjectsGui(QWidget):
                 self.current_index
             ]
 
-    def next_image(self):
+    def next_image(self) -> None:
         """
         Function to select the next image if the botton get's hit
 
