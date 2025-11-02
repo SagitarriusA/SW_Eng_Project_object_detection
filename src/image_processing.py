@@ -2,7 +2,7 @@
 
 """
 file: image_processing.py
-description: File that contains the class for the processing of the frames
+description: File that contains the class for the processing the frames
 author: Bauer Ryoya, Walter Julian, Willmann York
 date: 2025-11-2
 version: 1.2
@@ -54,7 +54,7 @@ class ImageProcessor:
 
     def _init_source(self) -> None:
         """
-        Private function to init the cam / read the images from the given path
+        Private function to init the cam / read images from the given path
 
         args: None
 

@@ -2,7 +2,7 @@
 
 """
 file: main.py
-description: Main file to read and process the input stream of a camera or a given image
+description: Main file to read and process the input stream of a camera or given images
 author: Bauer Ryoya, Walter Julian, Willmann York
 date: 2025-11-02
 version: 1.2

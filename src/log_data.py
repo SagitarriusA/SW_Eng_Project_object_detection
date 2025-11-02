@@ -2,7 +2,7 @@
 
 """
 file: log_data.py
-description: File that logs the detected geometries into the csv file
+description: File that logs detected shapes into csv file
 author: Bauer Ryoya, Walter Julian, Willmann York
 date: 2025-11-02
 version: 1.2
@@ -48,7 +48,7 @@ class DataLogger:  # pylint: disable=too-few-public-methods
 
     def log(self, shape: str, color: str) -> None:
         """
-        Public function to log the shapename and mean color
+        Public function to log the shape name and mean color
 
         arg: shape (str), color (str)
 

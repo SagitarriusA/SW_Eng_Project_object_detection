@@ -7,7 +7,7 @@ author: Bauer Ryoya, Walter Julian, Willmann York
 date: 2025-11-2
 version: 1.2
 changes: typo-changes according to Pylint, styling changes
-dependencies: os, sys, argparse, typing, numpy, OpenCV (cv2), PyQt5.QtWidgets, PyQt5.QtGui, PyQt5.QtCore
+dependencies: os, sys, argparse, typing, numpy, cv2, PyQt5.QtWidgets, PyQt5.QtGui, PyQt5.QtCore
 classes: ImageProcessor, ShapeSpeaker
 """
 
@@ -147,7 +147,7 @@ class ControlPanel(QWidget):  # pylint: disable=too-few-public-methods
 
     def _speak_shapes(self) -> None:
         """
-        Private function to convert the detected shapes to speech
+        Private function to convert the detected shapes to TTS
         with the class for the audio module
 
         Args: None
@@ -235,7 +235,7 @@ class GeometricObjectsGui(QWidget):  # pylint: disable=too-many-instance-attribu
 
     def next_image(self) -> None:
         """
-        Function to select the next image if the botton get's hit
+        Function to select the next image if the botton is reached
 
         Args: None
 
