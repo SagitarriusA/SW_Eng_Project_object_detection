@@ -82,7 +82,7 @@ def main() -> None:
         images: list[tuple[np.ndarray, dict[str, int]]] = []
 
         for path in image_files:
-            image = processor.load_image(path)
+            image = processor.load_frame(path)
             image, shapes_count = processor.process_frame(image)
             images.append((image, shapes_count))
 

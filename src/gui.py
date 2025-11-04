@@ -265,7 +265,7 @@ class GeometricObjectsGui(QWidget):  # pylint: disable=too-many-instance-attribu
             return
 
         self.timer.stop()
-        frame = self.processor.get_frame()
+        frame = self.processor.load_frame()
 
         if frame is not None:
             processed, shapes_count = self.processor.process_frame(frame)
@@ -358,7 +358,7 @@ if __name__ == "__main__":
         images: list[tuple[np.ndarray, dict[str, int]]] = []
 
         for path in image_files:
-            image = processor_test_class.load_image(path)
+            image = processor_test_class.load_frame(path)
             image, shapes_count_camera = processor_test_class.process_frame(image)
             images.append((image, shapes_count_camera))
 

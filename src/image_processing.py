@@ -80,44 +80,18 @@ class ImageProcessor:
             print("Camera initialized successfully.")
 
         elif self.image_path is not None:
-            _ = self.load_image(self.image_path)
+            _ = self.load_frame(self.image_path)
         else:
             # Raise an error if no input source (user didn't define the source / default failed):
             raise ValueError("No input source provided (camera or image).")
 
-    def load_image(self, path: str) -> np.ndarray:
+    def load_frame(self, path: Optional[str] = None) -> np.ndarray:
         """
-        Function to load the image
+        Function to load the current frame of the camera or to load the frame from the given path
 
-        Args: path (str)
+        Args: optional path (str), for the camera no path needed, but bool set to true
 
         Return: image (ndarray)
-        """
-
-        print(f"Loading image from {path}")
-
-        # Raise an error if the path is invalide:
-        if not os.path.exists(path):
-            raise FileNotFoundError(f"Image not found: {path}")
-
-        # Read the image:
-        self.image = cv2.imread(path)
-
-        # Raise an error if the image exists, but the method failed to read it:
-        if self.image is None:
-            raise ValueError(f"Failed to read image: {path}")
-
-        print("Image loaded successfully.")
-
-        return self.image
-
-    def get_frame(self) -> Optional[np.ndarray]:
-        """
-        Public function to get a frame from the camera
-
-        args: None
-
-        return: np.ndarray if available, None otherwise
         """
 
         # Get a single frame from camera or the loaded image:
@@ -130,7 +104,35 @@ class ImageProcessor:
                 # Raise an error if there is no frame from the camera:
                 raise RuntimeError("Failed to capture frame from camera.")
             return frame
-        return self.image
+
+        if path:
+            # Ensure path is a string
+            if not isinstance(path, str):
+                raise TypeError(
+                    f"Expected path to be a string, got {type(path).__name__}"
+                )
+
+            print(f"Loading image from {path}")
+
+            # Raise an error if the path is invalide:
+            if not os.path.exists(path):
+                raise FileNotFoundError(f"Image not found: {path}")
+
+            # Read the image:
+            self.image = cv2.imread(path)
+
+            # Raise an error if the image exists, but the method failed to read it:
+            if self.image is None:
+                raise ValueError(f"Failed to read image: {path}")
+
+            print("Image loaded successfully.")
+
+            return self.image
+
+        # Neither camera nor path provided:
+        raise RuntimeError(
+            "No input source provided: enable camera or provide an image path."
+        )
 
     # pylint: disable=too-many-locals
     def process_frame(self, image: np.ndarray) -> Tuple[np.ndarray, Dict[str, int]]:
@@ -312,7 +314,7 @@ if __name__ == "__main__":
             print("Running real-time camera processing (press 'q' to quit)")
             while True:
                 # Collect the current frame and start the processing:
-                img_frame = processor.get_frame()
+                img_frame = processor.load_frame()
                 assert img_frame is not None, "No frame available"
                 processed, _ = processor.process_frame(img_frame)
 
@@ -328,7 +330,7 @@ if __name__ == "__main__":
         else:
             print("Processing static image (press any key to close)")
             # Collect the current frame and start the processing on the image:
-            img_frame = processor.get_frame()
+            img_frame = processor.load_frame()
             assert img_frame is not None, "No frame available"
             processed, _ = processor.process_frame(img_frame)
 
