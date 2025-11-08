@@ -3,7 +3,8 @@
 """
 file: main.py
 description: Main file to read and process the input stream of a camera or given images
-
+dependencies: argparse, os, sys, numpy, PyQt5
+classes: ImageProcessor, LoadSources, GeometricObjectsGui, customized_datatypes
 """
 
 import argparse
@@ -14,9 +15,10 @@ from PyQt5.QtWidgets import QApplication
 from image_processing import ImageProcessor
 from load_sources import LoadSources
 from gui import GeometricObjectsGui
+from customized_datatypes import Sources, Frame
 
 
-def main() -> None:
+def main() -> None: # pylint: disable=too-many-branches
     """
     Function to run the code
 
@@ -41,18 +43,18 @@ def main() -> None:
     if args.camera:
         # Use camera device 0
         try:
-            source = LoadSources(cam_device=0, image_path=None)
+            source = LoadSources(Sources(cam_device=0, image_path=None))
         except (RuntimeError, FileNotFoundError, ValueError, PermissionError, TypeError) as e:
             print(f"[ERROR] {e}")
-
-        try:
-            processor = ImageProcessor(source)
-        except PermissionError as e:
-            print(f"[ERROR] {e}")
-
-        gui = GeometricObjectsGui(processor=processor, is_camera=True)
-        gui.show()
-        sys.exit(app.exec_())
+        else:
+            try:
+                processor = ImageProcessor(source)
+            except PermissionError as e:
+                print(f"[ERROR] {e}")
+            else:
+                gui = GeometricObjectsGui(processor=processor, is_camera=True)
+                gui.show()
+                sys.exit(app.exec_())
 
     elif args.image:
         # Collect all image paths in the folder
@@ -76,30 +78,29 @@ def main() -> None:
             return
 
         try:
-            source = LoadSources(image_path=image_files[0])
+            source = LoadSources(Sources(image_path=image_files[0]))
         except (RuntimeError, FileNotFoundError, ValueError, PermissionError, TypeError) as e:
             print(f"[ERROR] {e}")
+        else:
+            try:
+                processor = ImageProcessor(source)
+            except PermissionError as e:
+                print(f"[ERROR] {e}")
+            else:
+                # Tuple anpassen (siehe customized_datatypes)
+                images: list[tuple[np.ndarray, dict[str, int]]] = []
 
-        try:
-            processor = ImageProcessor(source)
-        except PermissionError as e:
-            print(f"[ERROR] {e}")
+                for path in image_files:
+                    image = source.load_frame(Frame(path=path))
+                    result = processor.process_frame(image)
+                    images.append((result.image, result.shapes_count))
 
-
-        # Tuple anpassen (siehe customized_datatypes)
-        images: list[tuple[np.ndarray, dict[str, int]]] = []
-
-        for path in image_files:
-            image = source.load_frame(path)
-            image, shapes_count = processor.process_frame(image)
-            images.append((image, shapes_count))
-
-        # Initialize the GUI with the list of images
-        gui = GeometricObjectsGui(
-            processor=processor, is_camera=False, image_list=images
-        )
-        gui.show()
-        sys.exit(app.exec_())
+                # Initialize the GUI with the list of images
+                gui = GeometricObjectsGui(
+                    processor=processor, is_camera=False, image_list=images
+                )
+                gui.show()
+                sys.exit(app.exec_())
 
     else:
         print("[ERROR] Please specify either --camera or --image")

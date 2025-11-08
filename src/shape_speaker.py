@@ -3,10 +3,6 @@
 """
 file: shape_speaker.py
 description: a file to convert the shape and color name to TTS and play it if recomended
-author: Bauer Ryoya, Walter Julian, Willmann York
-date: 2025-11-02
-version: 1.2
-changes: typo-changes according to Pylint, style changes
 dependencies: __future__, os, warnings, typing, gtts, pygame
 """
 

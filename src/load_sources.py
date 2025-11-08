@@ -1,25 +1,35 @@
+#!/usr/bin/env python3
+
+"""
+file: load_sources.py
+description: File to read the given sources (cam or images)
+dependencies: os, typing, cv2, numpy
+classes: customized_datatypes
+"""
+
 import os
 from typing import Optional
 import cv2
 import numpy as np
+from customized_datatypes import Sources, Frame
 
 
 class LoadSources:
     """Setup the class for loading sources"""
 
     def __init__(
-        self, cam_device: Optional[int] = None, image_path: Optional[str] = None
+        self, valid_sources: Sources
     ) -> None:
         """
         Function to init the class
         
-        Args: cam_device (int), image_path (str)
+        Args: valid_sources.cam_device (Optional[int]), valid_sources.image_path (Optional[str])
         
         Return: None
         """
 
-        self.cam_device: Optional[int] = cam_device
-        self.image_path: Optional[str] = image_path
+        self.cam_device: Optional[int] = valid_sources.cam_device
+        self.image_path = Frame(path=valid_sources.image_path)
         self.cap: Optional[cv2.VideoCapture] = None
         self.image: Optional[np.ndarray] = None
         self.is_camera: bool = False
@@ -64,13 +74,13 @@ class LoadSources:
             # Raise an error if no input source (user didn't define the source / default failed):
             raise ValueError("No input source provided (camera or image).")
 
-    def load_frame(self, path: Optional[str] = None) -> np.ndarray:
+    def load_frame(self, data: Frame) -> Frame:
         """
         Function to load the current frame of the camera or to load the frame from the given path
 
-        Args: optional path (str), for the camera no path needed, but bool set to true
+        Args: data: Frame
 
-        Return: image (ndarray)
+        Return: Frame
         """
 
         # Get a single frame from camera or the loaded image:
@@ -82,31 +92,27 @@ class LoadSources:
             if not ret:
                 # Raise an error if there is no frame from the camera:
                 raise RuntimeError("Failed to capture frame from camera.")
-            return frame
+            return Frame(frame=frame)
 
-        if path:
-            # Ensure path is a string
-            if not isinstance(path, str):
-                raise TypeError(
-                    f"Expected path to be a string, got {type(path).__name__}"
-                )
+        if data.path:
+            if not isinstance(data.path, str):
+                raise TypeError(f"Expected 'path' to be a string, got {type(data.path).__name__}")
 
-            print(f"Loading image from {path}")
+            if not os.path.exists(data.path):
+                raise FileNotFoundError(f"Image not found: {data.path}")
 
-            # Raise an error if the path is invalide:
-            if not os.path.exists(path):
-                raise FileNotFoundError(f"Image not found: {path}")
+            print(f"Loading image from {data.path}")
 
             # Read the image:
-            self.image = cv2.imread(path)
+            self.image = cv2.imread(data.path)
 
             # Raise an error if the image exists, but the method failed to read it:
             if self.image is None:
-                raise ValueError(f"Failed to read image: {path}")
+                raise ValueError(f"Failed to read image: {data.path}")
 
             print("Image loaded successfully.")
 
-            return self.image
+            return Frame(frame=self.image, path=data.path)
 
         # Neither camera nor path provided:
         raise RuntimeError(
