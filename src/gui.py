@@ -11,13 +11,10 @@ dependencies: os, sys, argparse, typing, numpy, cv2, PyQt5.QtWidgets, PyQt5.QtGu
 classes: ImageProcessor, ShapeSpeaker
 """
 
-import os
-import sys
-import argparse
 from typing import Optional, Dict
 import numpy as np
 import cv2
-from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QVBoxLayout, QPushButton
+from PyQt5.QtWidgets import QLabel, QWidget, QVBoxLayout, QPushButton
 from PyQt5.QtGui import QImage, QPixmap, QKeyEvent
 from PyQt5.QtCore import QTimer, Qt
 from image_processing import ImageProcessor
@@ -303,71 +300,3 @@ class GeometricObjectsGui(QWidget):  # pylint: disable=too-many-instance-attribu
             self.close()
         else:
             super().keyPressEvent(event)  # type: ignore[arg-type]
-
-
-if __name__ == "__main__":
-    # Setup the argparser for the console input:
-    parser = argparse.ArgumentParser(description="Read from camera or image folder.")
-    parser.add_argument("--camera", action="store_true", help="Use camera device 0")
-    parser.add_argument(
-        "--image", action="store_true", help="Process all images in /images/"
-    )
-    args = parser.parse_args()
-
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    images_dir = os.path.join(script_dir, "../images")
-
-    app = QApplication(sys.argv)
-
-    if args.camera:
-        # Use camera device 0
-        try:
-            processor_test_class = ImageProcessor(cam_device=0, image_path=None)
-        except (RuntimeError, FileNotFoundError, ValueError, PermissionError) as e:
-            print(f"[ERROR] {e}")
-
-        gui = GeometricObjectsGui(processor=processor_test_class, is_camera=True)
-        gui.show()
-        sys.exit(app.exec_())
-
-    elif args.image:
-        # Collect all image paths in the folder
-        image_files = sorted(
-            [
-                os.path.join(images_dir, f)
-                for f in os.listdir(images_dir)
-                if f.lower().endswith(
-                    (
-                        ".png",
-                        ".jpg",
-                        ".jpeg",
-                        ".bmp",
-                    )
-                )
-            ]
-        )
-
-        if not image_files:
-            print(f"[ERROR] No images found in {images_dir}")
-
-        try:
-            processor_test_class = ImageProcessor(image_path=image_files[0])
-        except (RuntimeError, FileNotFoundError, ValueError, PermissionError) as e:
-            print(f"[ERROR] {e}")
-
-        images: list[tuple[np.ndarray, dict[str, int]]] = []
-
-        for path in image_files:
-            image = processor_test_class.load_frame(path)
-            image, shapes_count_camera = processor_test_class.process_frame(image)
-            images.append((image, shapes_count_camera))
-
-        # Initialize the GUI with the list of images
-        gui = GeometricObjectsGui(
-            processor=processor_test_class, is_camera=False, image_list=images
-        )
-        gui.show()
-        sys.exit(app.exec_())
-
-    else:
-        print("[ERROR] Please specify either --camera or --image")
