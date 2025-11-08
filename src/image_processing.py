@@ -3,12 +3,8 @@
 """
 file: image_processing.py
 description: File that contains the class for the processing the frames
-author: Bauer Ryoya, Walter Julian, Willmann York
-date: 2025-11-2
-version: 1.2
-changes: typo-changes according to Pylint, style changes
-dependencies: OpenCV (cv2), os, numpy, typing
-classes: DataLogger
+dependencies: cv2, numpy, typing
+classes: DataLogger, customized_datatypes, LoadSources
 """
 
 from typing import Optional, Tuple, Dict, Sequence, cast
@@ -16,6 +12,7 @@ import cv2
 import numpy as np
 from log_data import DataLogger
 from load_sources import LoadSources
+from customized_datatypes import LogMessage, Sources, Frame, ProcessedFrame
 
 
 class ImageProcessor:
@@ -25,8 +22,8 @@ class ImageProcessor:
         """
         Init function for the class
 
-        args: cam_device (int, default = None), image_path (str, default = None)
-
+        args: loaded_source (LoadSources)
+        
         return: None
         """
 
@@ -43,23 +40,21 @@ class ImageProcessor:
 
     # pylint: disable=too-many-locals
     # Tuple anpassen (siehe customized_datatypes)
-    def process_frame(self, image: np.ndarray) -> Tuple[np.ndarray, Dict[str, int]]:
+    def process_frame(self, image: Frame) -> ProcessedFrame:
         """
         Process a frame to detect shapes, label them with color, and count shapes.
 
-        Args: image: nDArray
+        args: image (Frame)
 
-        Returns: Tuple containing:
-                    Processed image nDArray
-                    Dict mapping shape names to counts
+        return: ProcessedFrame
         """
 
         # If the user passes an invalide image / empty image raise an error:
-        if image is None:
+        if image.frame is None:
             raise RuntimeError("Error, no image found to process")
 
         # Preprocessing of the frame:
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(image.frame, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray, (5, 5), 0)
         _, binary = cv2.threshold(blurred, 220, 255, cv2.THRESH_BINARY)
 
@@ -90,7 +85,7 @@ class ImageProcessor:
             approx = cv2.approxPolyDP(contour, epsilon, True)
 
             # Draw the detected contour onto the frame:
-            cv2.drawContours(image, [contour], -1, (0, 0, 0), 2)
+            cv2.drawContours(image.frame, [contour], -1, (0, 0, 0), 2)
 
             # Compute centroid:
             M = cv2.moments(contour)
@@ -126,11 +121,11 @@ class ImageProcessor:
             shapes_count[shape_name] = shapes_count.get(shape_name, 0) + 1
 
             # Compute average color inside contour:
-            mask = np.zeros(image.shape[:2], dtype=np.uint8)
+            mask = np.zeros(image.frame.shape[:2], dtype=np.uint8)
             cv2.drawContours(mask, [contour], -1, 255, -1)  # type: ignore
 
             mean_color = cast(
-                Tuple[float, float, float, float], cv2.mean(image, mask=mask)
+                Tuple[float, float, float, float], cv2.mean(image.frame, mask=mask)
             )
             b_f, g_f, r_f, _ = mean_color
             b, g, r = int(b_f), int(g_f), int(r_f)
@@ -138,7 +133,7 @@ class ImageProcessor:
 
             # Draw label:
             cv2.putText(
-                image,
+                image.frame,
                 f"{color_name}, {shape_name}",
                 (x_mid - 40, y_mid),
                 cv2.FONT_HERSHEY_SIMPLEX,
@@ -147,9 +142,9 @@ class ImageProcessor:
                 2,
             )
 
-            self.logging.log(shape_name, color_name)
+            self.logging.log(LogMessage(shape_name, color_name))
 
-        return image, shapes_count
+        return ProcessedFrame(image=image.frame, shapes_count=shapes_count)
 
     def _closest_color_name(self, bgr: Sequence[int]) -> str:
         """
@@ -159,6 +154,7 @@ class ImageProcessor:
 
         return: color (str)
         """
+
         # Convert the BGR values to HSV:
         b, g, r = bgr
         color_bgr: np.ndarray = np.array([[[b, g, r]]], dtype=np.uint8)
@@ -189,16 +185,19 @@ class ImageProcessor:
 
         return "unknown"
 
-    def load_frame(self) -> np.ndarray:
+    def load_frame(self, data: Optional[Frame] = None) -> Frame:
         """
         Function to delegate frame loading to the LoadSources instance
         
-        Args: None
+        Args: data (Optional[Frame])
         
-        Return: nDArray
+        Return: Frame
         """
 
-        return self.source.load_frame()
+        if data is None:
+            data = Frame()
+
+        return self.source.load_frame(data)
 
     def release(self) -> None:
         """
@@ -214,7 +213,7 @@ class ImageProcessor:
 
 if __name__ == "__main__":
     # First, set up the LoadSource
-    source = LoadSources(cam_device=0)
+    source = LoadSources(Sources(cam_device=0))
     # OR source = LoadSource(image_path="images/test.jpg")
 
     # Then, pass that object to ImageProcessor

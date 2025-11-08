@@ -3,15 +3,13 @@
 """
 file: log_data.py
 description: File that logs detected shapes into csv file
-author: Bauer Ryoya, Walter Julian, Willmann York
-date: 2025-11-02
-version: 1.2
-changes: typo-changes according to Pylint, styling changes
 dependencies: os, datetime
+classes: customized_datatypes
 """
 
 import os
 from datetime import datetime
+from customized_datatypes import LogMessage
 
 
 class DataLogger:  # pylint: disable=too-few-public-methods
@@ -46,11 +44,11 @@ class DataLogger:  # pylint: disable=too-few-public-methods
         else:
             print(f"Started logging to {self.log_path}")
 
-    def log(self, shape: str, color: str) -> None:
+    def log(self, message: LogMessage) -> None:
         """
         Public function to log the shape name and mean color
 
-        arg: shape (str), color (str)
+        arg: message.shape (str), message.color (str)
 
         return: None
         """
@@ -60,7 +58,7 @@ class DataLogger:  # pylint: disable=too-few-public-methods
 
         try:
             with open(self.log_path, "a", encoding="utf-8") as f:
-                f.write(f"{timestamp:<22} {color:<17} {shape:<10}\n")
+                f.write(f"{timestamp:<22} {message.color:<17} {message.shape:<10}\n")
         except (PermissionError, OSError) as e:
             print(f"[LOG ERROR] Could not write to {self.log_path}: {e}")
 
@@ -73,7 +71,7 @@ if __name__ == "__main__":
 
     else:
         # Test the logging with a few logs:
-        logging.log("circle", "red")
-        logging.log("Pentagon", "purple")
-        logging.log("circle", "blue")
-        logging.log("circle", "yellow")
+        logging.log(LogMessage(shape="circle", color="red"))
+        logging.log(LogMessage(shape="pentagon", color="purple"))
+        logging.log(LogMessage(shape="circle", color="blue"))
+        logging.log(LogMessage(shape="circle", color="yellow"))
