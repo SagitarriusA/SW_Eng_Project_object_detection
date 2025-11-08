@@ -2,7 +2,7 @@
 
 """
 file: setup_local_env.py
-description: Setup file to install the librarys (packages) into the venv
+description: Setup file to install the libraries (packages) into the .venv
 author: Bauer Ryoya, Walter Julian, Willmann York
 date: 2025-10-20
 version: 1.0
@@ -14,13 +14,15 @@ import subprocess
 import sys
 import os
 
+
 def install_local_requirements():
     """Installs local dependencies"""
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read("config.ini")
 
     requirements = [
-        pkg.strip() for pkg in config.get('install', 'requirements', fallback='').split(',')
+        pkg.strip()
+        for pkg in config.get("install", "requirements", fallback="").split(",")
         if pkg.strip()
     ]
 
@@ -31,7 +33,7 @@ def install_local_requirements():
     # remove the PIP_USER env var to prevent the --user conflict
     env = os.environ.copy()
     env.pop("PIP_USER", None)
-    
+
     # build final pip command
     cmd = [sys.executable, "-m", "pip", "install", "--upgrade", *requirements]
 
@@ -42,12 +44,13 @@ def install_local_requirements():
 
 
 def setup_pylint_config():
-    """Erstellt .pylintrc falls noch nicht vorhanden."""
+    """Creates .pylintrc if not available yet."""
     pylintrc_path = ".pylintrc"
     if not os.path.exists(pylintrc_path):
         print("Creating default .pylintrc for PyQt5 and project classes...")
         with open(pylintrc_path, "w", encoding="utf-8") as f:
-            f.write("""[MASTER]
+            f.write(
+                """[MASTER]
 ignore=venv
 
 [TYPECHECK]
@@ -65,7 +68,8 @@ disable=
     E1101,  # no-member (PyQt5 dynamic attributes)
     R0903,  # too few public methods
 
-""")
+"""
+            )
     else:
         print(".pylintrc already exists – skipping creation.")
 
