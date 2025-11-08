@@ -46,7 +46,7 @@ class ShapeSpeaker:
 
     def _describe_shapes(self, shapes_count: dict) -> Optional[str]:
         """
-        Private function to generate the string for the spoken output
+        Private function to generate the string for the TTS output
 
         arg: shape_count (dict)
 
@@ -73,7 +73,7 @@ class ShapeSpeaker:
         self, shapes_colors: dict, filename: str = "detected_shapes.mp3"
     ) -> Optional[str]:
         """
-        Private function to convert the text to speech and save the file
+        Private function to convert the TTS and save the file
 
         args: shape_colors (dict), filename (str)
 
@@ -122,7 +122,7 @@ class ShapeSpeaker:
 
     def speak(self, shapes_count: dict) -> None:
         """
-        Function to handle the input, concvert it to speech and play it
+        Function to handle the input, convert it to speak and play it
 
         Args: shapes_count (dict)
 

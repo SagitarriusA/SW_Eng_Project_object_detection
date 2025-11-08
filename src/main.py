@@ -2,13 +2,8 @@
 
 """
 file: main.py
-description: Main file to read and process the input stream of a camera or a given image
-author: Bauer Ryoya, Walter Julian, Willmann York
-date: 2025-11-02
-version: 1.2
-changes: typo-changes according to Pylint, styling changes
-dependencies: argparse, os, sys, PyQt5.QtWidgets, numpy
-classes: ImageProcessor, GeometricObjectsGui
+description: Main file to read and process the input stream of a camera or given images
+
 """
 
 import argparse
@@ -17,6 +12,7 @@ import sys
 import numpy as np
 from PyQt5.QtWidgets import QApplication
 from image_processing import ImageProcessor
+from load_sources import LoadSources
 from gui import GeometricObjectsGui
 
 
@@ -45,8 +41,13 @@ def main() -> None:
     if args.camera:
         # Use camera device 0
         try:
-            processor = ImageProcessor(cam_device=0, image_path=None)
-        except (RuntimeError, FileNotFoundError, ValueError, PermissionError) as e:
+            source = LoadSources(cam_device=0, image_path=None)
+        except (RuntimeError, FileNotFoundError, ValueError, PermissionError, TypeError) as e:
+            print(f"[ERROR] {e}")
+
+        try:
+            processor = ImageProcessor(source)
+        except PermissionError as e:
             print(f"[ERROR] {e}")
 
         gui = GeometricObjectsGui(processor=processor, is_camera=True)
@@ -75,14 +76,21 @@ def main() -> None:
             return
 
         try:
-            processor = ImageProcessor(image_path=image_files[0])
-        except (RuntimeError, FileNotFoundError, ValueError, PermissionError) as e:
+            source = LoadSources(image_path=image_files[0])
+        except (RuntimeError, FileNotFoundError, ValueError, PermissionError, TypeError) as e:
             print(f"[ERROR] {e}")
 
+        try:
+            processor = ImageProcessor(source)
+        except PermissionError as e:
+            print(f"[ERROR] {e}")
+
+
+        # Tuple anpassen (siehe customized_datatypes)
         images: list[tuple[np.ndarray, dict[str, int]]] = []
 
         for path in image_files:
-            image = processor.load_image(path)
+            image = source.load_frame(path)
             image, shapes_count = processor.process_frame(image)
             images.append((image, shapes_count))
 
