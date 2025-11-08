@@ -3,11 +3,7 @@
 """
 file: gui.py
 description: GUI to display the processed frame in the GUI and the amount of detected shapes
-author: Bauer Ryoya, Walter Julian, Willmann York
-date: 2025-11-2
-version: 1.2
-changes: typo-changes according to Pylint, styling changes
-dependencies: os, sys, argparse, typing, numpy, cv2, PyQt5.QtWidgets, PyQt5.QtGui, PyQt5.QtCore
+dependencies: typing, numpy, cv2, PyQt5
 classes: ImageProcessor, ShapeSpeaker
 """
 
@@ -88,7 +84,11 @@ class ImageDisplayWidget(QWidget):
         """
         Function to update the label for the shapes
 
-        Args: shapes_count ()"""
+        Args: shapes_count (Dict)
+        
+        Return: None
+        """
+        
         if not shapes_count:
             self.shapes_label.setText("Detected shapes: None")
         else:
@@ -265,7 +265,9 @@ class GeometricObjectsGui(QWidget):  # pylint: disable=too-many-instance-attribu
         frame = self.processor.load_frame()
 
         if frame is not None:
-            processed, shapes_count = self.processor.process_frame(frame)
+            result = self.processor.process_frame(frame)
+            processed = result.image
+            shapes_count = result.shapes_count
             self.display.display_image(processed)
             self.display.update_shapes_label(shapes_count)
             self.latest_shapes_count = shapes_count
