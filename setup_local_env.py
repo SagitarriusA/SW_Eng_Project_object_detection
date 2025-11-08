@@ -2,7 +2,7 @@
 
 """
 file: setup_local_env.py
-description: Setup file to install the librarys (packages) into the venv
+description: Setup file to install the libraries (packages) into the .venv
 author: Bauer Ryoya, Walter Julian, Willmann York
 date: 2025-10-20
 version: 1.0
@@ -44,7 +44,7 @@ def install_local_requirements():
 
 
 def setup_pylint_config():
-    """Erstellt .pylintrc falls noch nicht vorhanden."""
+    """Creates .pylintrc if not available yet."""
     pylintrc_path = ".pylintrc"
     if not os.path.exists(pylintrc_path):
         print("Creating default .pylintrc for PyQt5 and project classes...")
