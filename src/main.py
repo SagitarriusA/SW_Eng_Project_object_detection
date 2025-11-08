@@ -3,12 +3,7 @@
 """
 file: main.py
 description: Main file to read and process the input stream of a camera or given images
-author: Bauer Ryoya, Walter Julian, Willmann York
-date: 2025-11-02
-version: 1.2
-changes: typo-changes according to Pylint, styling changes
-dependencies: argparse, os, sys, PyQt5.QtWidgets, numpy
-classes: ImageProcessor, GeometricObjectsGui
+
 """
 
 import argparse
@@ -79,6 +74,7 @@ def main() -> None:
         except (RuntimeError, FileNotFoundError, ValueError, PermissionError) as e:
             print(f"[ERROR] {e}")
 
+        # Tuple anpassen (siehe customized_datatypes)
         images: list[tuple[np.ndarray, dict[str, int]]] = []
 
         for path in image_files:

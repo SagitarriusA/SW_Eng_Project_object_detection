@@ -133,6 +133,7 @@ class ImageProcessor:
         return self.image
 
     # pylint: disable=too-many-locals
+    # Tuple anpassen (siehe customized_datatypes)
     def process_frame(self, image: np.ndarray) -> Tuple[np.ndarray, Dict[str, int]]:
         """
         Process a frame to detect shapes, label them with color, and count shapes.
