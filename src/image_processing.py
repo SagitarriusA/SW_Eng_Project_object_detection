@@ -2,29 +2,26 @@
 
 """
 file: image_processing.py
-description: File that contains the class for the processing of the frames
+description: File that contains the class for the processing the frames
 author: Bauer Ryoya, Walter Julian, Willmann York
-date: 2025-10-11
-date: 2025-11-1
+date: 2025-11-2
 version: 1.2
 changes: typo-changes according to Pylint, style changes
-dependencies: OpenCV (cv2), os, numpy
+dependencies: OpenCV (cv2), os, numpy, typing
 classes: DataLogger
 """
 
-import os
 from typing import Optional, Tuple, Dict, Sequence, cast
 import cv2
 import numpy as np
 from log_data import DataLogger
+from load_sources import LoadSources
 
 
 class ImageProcessor:
     """Setup the class for the image processing with the input of the camera / the images"""
 
-    def __init__(
-        self, cam_device: Optional[int] = None, image_path: Optional[str] = None
-    ) -> None:
+    def __init__(self, loaded_source: "LoadSources") -> None:
         """
         Init function for the class
 
@@ -33,11 +30,9 @@ class ImageProcessor:
         return: None
         """
 
-        self.cam_device: Optional[int] = cam_device
-        self.image_path: Optional[str] = image_path
-        self.cap: Optional[cv2.VideoCapture] = None
-        self.image: Optional[np.ndarray] = None
-        self.is_camera: bool = False
+        self.source: "LoadSources" = loaded_source
+        self.cap: Optional[cv2.VideoCapture] = loaded_source.cap
+        self.is_camera: bool = loaded_source.is_camera
 
         # Init the data logging:
         try:
@@ -46,86 +41,8 @@ class ImageProcessor:
             print(f"[ERROR] {e}")
             raise
 
-        # Init the source:
-        try:
-            self._init_source()
-        except (RuntimeError, FileNotFoundError, ValueError) as e:
-            print(f"[ERROR] Failed to initialize source: {e}")
-            raise
-
-    def _init_source(self) -> None:
-        """
-        Private function to init the cam / read the images from the given path
-
-        args: None
-
-        return: None
-        """
-
-        if self.cam_device is not None:
-            print(f"Initializing camera device {self.cam_device}")
-
-            # For the build in web cam use the standard capture method:
-            if self.cam_device == 0:
-                self.cap = cv2.VideoCapture(self.cam_device)
-            # For an external USB device use cv2.CAP_DSHOW in addition:
-            else:
-                self.cap = cv2.VideoCapture(self.cam_device, cv2.CAP_DSHOW)
-
-            # Raise an error if the device couldn't be opened:
-            if not self.cap.isOpened():
-                raise RuntimeError(f"Could not open camera device {self.cam_device}")
-
-            # Enable the bool variable for the camera:
-            self.is_camera = True
-            print("Camera initialized successfully.")
-
-        elif self.image_path is not None:
-            _ = self.load_image(self.image_path)
-        else:
-            # Raise an error if no input source (user didn't define the source / default failed):
-            raise ValueError("No input source provided (camera or image).")
-
-    def load_image(self, path: str) -> np.ndarray:
-        print(f"Loading image from {path}")
-
-        # Raise an error if the path is invalide:
-        if not os.path.exists(path):
-            raise FileNotFoundError(f"Image not found: {path}")
-
-        # Read the image:
-        self.image = cv2.imread(path)
-
-        # Raise an error if the image exists, but the method failed to read it:
-        if self.image is None:
-            raise ValueError(f"Failed to read image: {path}")
-
-        print("Image loaded successfully.")
-
-        return self.image
-
-    def get_frame(self) -> Optional[np.ndarray]:
-        """
-        Public function to get a frame from the camera
-
-        args: None
-
-        return: np.ndarray if available, None otherwise
-        """
-
-        # Get a single frame from camera or the loaded image:
-        if self.is_camera:
-            # Check if self.cap is not None to be sure that the camera is initalized:
-            assert self.cap is not None, "Camera not initialized"
-            ret, frame = self.cap.read()
-
-            if not ret:
-                # Raise an error if there is no frame from the camera:
-                raise RuntimeError("Failed to capture frame from camera.")
-            return frame
-        return self.image
-
     # pylint: disable=too-many-locals
+    # Tuple anpassen (siehe customized_datatypes)
     def process_frame(self, image: np.ndarray) -> Tuple[np.ndarray, Dict[str, int]]:
         """
         Process a frame to detect shapes, label them with color, and count shapes.
@@ -133,8 +50,8 @@ class ImageProcessor:
         Args: image: nDArray
 
         Returns: Tuple containing:
-                    - Processed image nDArray
-                    - Dict mapping shape names to counts
+                    Processed image nDArray
+                    Dict mapping shape names to counts
         """
 
         # If the user passes an invalide image / empty image raise an error:
@@ -272,60 +189,37 @@ class ImageProcessor:
 
         return "unknown"
 
-    def release(self):
+    def load_frame(self) -> np.ndarray:
         """
-        Release function to shut the camera down
-
-        args: None
-
-        return: None
+        Function to delegate frame loading to the LoadSources instance
+        
+        Args: None
+        
+        Return: nDArray
         """
-        if self.cap:
-            self.cap.release()
-            print("Camera released.")
+
+        return self.source.load_frame()
+
+    def release(self) -> None:
+        """
+        Function to release the source resources
+        
+        Args: None
+        
+        Return: None
+        """
+
+        self.source.release()
 
 
 if __name__ == "__main__":
-    # Test the class with device 0:
-    cam_dev = None
-    # cam_device = 0
+    # First, set up the LoadSource
+    source = LoadSources(cam_device=0)
+    # OR source = LoadSource(image_path="images/test.jpg")
 
-    # Test the class with the test image:
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    img_path = os.path.join(script_dir, "../images", "test_image_00.png")
+    # Then, pass that object to ImageProcessor
+    processor = ImageProcessor(source)
 
-    try:
-        processor = ImageProcessor(cam_device=cam_dev, image_path=img_path)
-    except (RuntimeError, FileNotFoundError, ValueError, PermissionError) as e:
-        print(f"[ERROR] {e}")
-
-    else:
-        # Run the real time application for the cam:
-        if processor.is_camera:
-            print("Running real-time camera processing (press 'q' to quit)")
-            while True:
-                # Collect the current frame and start the processing:
-                img_frame = processor.get_frame()
-                assert img_frame is not None, "No frame available"
-                processed, _ = processor.process_frame(img_frame)
-
-                # Display the result:
-                cv2.imshow("Processed Frame", processed)
-                if cv2.waitKey(20) & 0xFF == ord("q"):
-                    break
-
-            # Release all ressources:
-            processor.release()
-            cv2.destroyAllWindows()
-        # Run the application once for the image:
-        else:
-            print("Processing static image (press any key to close)")
-            # Collect the current frame and start the processing on the image:
-            img_frame = processor.get_frame()
-            assert img_frame is not None, "No frame available"
-            processed, _ = processor.process_frame(img_frame)
-
-            # Wait for the user to close the window:
-            cv2.imshow("Processed Image", processed)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
+    # You can now access attributes in ImageProcessor:
+    print(processor.is_camera)
+    print(processor.cap)

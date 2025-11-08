@@ -2,9 +2,9 @@
 
 """
 file: log_data.py
-description: File that logs the detected geometries into the csv file
+description: File that logs detected shapes into csv file
 author: Bauer Ryoya, Walter Julian, Willmann York
-date: 2025-11-01
+date: 2025-11-02
 version: 1.2
 changes: typo-changes according to Pylint, styling changes
 dependencies: os, datetime
@@ -14,11 +14,17 @@ import os
 from datetime import datetime
 
 
-class DataLogger:
+class DataLogger:  # pylint: disable=too-few-public-methods
     """Class for the data logging"""
 
-    def __init__(self):
-        """Init function for the class"""
+    def __init__(self) -> None:
+        """
+        Init function for the class
+
+        Args: None
+
+        Return: None
+        """
 
         # Generate the dir for the logs if it's still missing:
         self.project_root = os.path.abspath(
@@ -42,7 +48,7 @@ class DataLogger:
 
     def log(self, shape: str, color: str) -> None:
         """
-        Public function to log the shapename and mean color
+        Public function to log the shape name and mean color
 
         arg: shape (str), color (str)
 
