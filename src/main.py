@@ -44,15 +44,15 @@ def main() -> None:
             source = LoadSources(cam_device=0, image_path=None)
         except (RuntimeError, FileNotFoundError, ValueError, PermissionError, TypeError) as e:
             print(f"[ERROR] {e}")
-
-        try:
-            processor = ImageProcessor(source)
-        except PermissionError as e:
-            print(f"[ERROR] {e}")
-
-        gui = GeometricObjectsGui(processor=processor, is_camera=True)
-        gui.show()
-        sys.exit(app.exec_())
+        else:
+            try:
+                processor = ImageProcessor(source)
+            except PermissionError as e:
+                print(f"[ERROR] {e}")
+            else:
+                gui = GeometricObjectsGui(processor=processor, is_camera=True)
+                gui.show()
+                sys.exit(app.exec_())
 
     elif args.image:
         # Collect all image paths in the folder
