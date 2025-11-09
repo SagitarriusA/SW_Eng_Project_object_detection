@@ -42,7 +42,7 @@ class DataLogger:  # pylint: disable=too-few-public-methods
         except (PermissionError, OSError) as e:
             print(f"[LOG ERROR] Could not write to {self.log_path}: {e}")
         else:
-            print(f"Started logging to {self.log_path}")
+            print(f"[Info] Started logging to {self.log_path}")
 
     def log(self, message: LogMessage) -> None:
         """

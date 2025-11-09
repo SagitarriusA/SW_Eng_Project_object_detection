@@ -198,6 +198,7 @@ class GeometricObjectsGui(QWidget):  # pylint: disable=too-many-instance-attribu
         self.frame_latest_shapes_count: Dict[int, Dict[str, int]] = {}
         self.latest_shapes_count: Dict[str, int] = {}
         self.speaker = ShapeSpeaker()
+        self.debug: bool = False
 
         if image_list:
             # Store each shape count using the image index as key
@@ -223,7 +224,9 @@ class GeometricObjectsGui(QWidget):  # pylint: disable=too-many-instance-attribu
         # Initialization:
         if self.is_camera:
             self.timer.start(0)
-            print("[INFO] Started camera stream.")
+
+            if self.debug:
+                print("[Debug] Started camera stream.")
         elif self.image_list:
             self.display.display_image(self.image_list[self.current_index])
             self.display.update_shapes_label(
