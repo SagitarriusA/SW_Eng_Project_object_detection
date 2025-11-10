@@ -40,6 +40,8 @@ class ShapeSpeaker:
         self.lang = lang
         os.makedirs(self.output_dir, exist_ok=True)
 
+        self.debug = False
+
     def _describe_shapes(self, shapes_count: dict) -> Optional[str]:
         """
         Private function to generate the string for the TTS output
@@ -85,7 +87,9 @@ class ShapeSpeaker:
         output_path = os.path.join(self.output_dir, filename)
         tts = gTTS(text=text, lang=self.lang)
         tts.save(output_path)
-        print(f"[INFO] Audio saved to: {output_path}")
+
+        if self.debug:
+            print(f"[INFO] Audio saved to: {output_path}")
         return output_path
 
     def play_audio(self, filepath: Optional[str] = None) -> None:

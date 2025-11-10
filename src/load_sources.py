@@ -17,14 +17,12 @@ from customized_datatypes import Sources, Frame
 class LoadSources:
     """Setup the class for loading sources"""
 
-    def __init__(
-        self, valid_sources: Sources
-    ) -> None:
+    def __init__(self, valid_sources: Sources) -> None:
         """
         Function to init the class
-        
+
         Args: valid_sources.cam_device (Optional[int]), valid_sources.image_path (Optional[str])
-        
+
         Return: None
         """
 
@@ -33,6 +31,7 @@ class LoadSources:
         self.cap: Optional[cv2.VideoCapture] = None
         self.image: Optional[np.ndarray] = None
         self.is_camera: bool = False
+        self.debug: bool = False
 
         # Init the source:
         try:
@@ -51,7 +50,8 @@ class LoadSources:
         """
 
         if self.cam_device is not None:
-            print(f"Initializing camera device {self.cam_device}")
+            if self.debug:
+                print(f"[Debug] Initializing camera device {self.cam_device}")
 
             # For the build in web cam use the standard capture method:
             if self.cam_device == 0:
@@ -66,7 +66,9 @@ class LoadSources:
 
             # Enable the bool variable for the camera:
             self.is_camera = True
-            print("Camera initialized successfully.")
+
+            if self.debug:
+                print("[Debug] Camera initialized successfully.")
 
         elif self.image_path is not None:
             _ = self.load_frame(self.image_path)
@@ -96,12 +98,15 @@ class LoadSources:
 
         if data.path:
             if not isinstance(data.path, str):
-                raise TypeError(f"Expected 'path' to be a string, got {type(data.path).__name__}")
+                raise TypeError(
+                    f"Expected 'path' to be a string, got {type(data.path).__name__}"
+                )
 
             if not os.path.exists(data.path):
                 raise FileNotFoundError(f"Image not found: {data.path}")
 
-            print(f"Loading image from {data.path}")
+            if self.debug:
+                print(f"[Debug] Loading image from {data.path}")
 
             # Read the image:
             self.image = cv2.imread(data.path)
@@ -110,7 +115,8 @@ class LoadSources:
             if self.image is None:
                 raise ValueError(f"Failed to read image: {data.path}")
 
-            print("Image loaded successfully.")
+            if self.debug:
+                print("[Debug] Image loaded successfully.")
 
             return Frame(frame=self.image, path=data.path)
 
@@ -130,4 +136,5 @@ class LoadSources:
 
         if self.cap:
             self.cap.release()
-            print("Camera released.")
+            if self.debug:
+                print("[Debug] Camera released.")

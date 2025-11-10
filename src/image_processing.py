@@ -16,7 +16,7 @@ from customized_datatypes import LogMessage, Sources, Frame, ProcessedFrame
 
 
 class ImageProcessor:
-    """Setup the class for the image processing with the input of the camera / the images"""
+    """Setup the class for the image processing with the input of the camera / images"""
 
     def __init__(self, loaded_source: "LoadSources") -> None:
         """
@@ -39,7 +39,6 @@ class ImageProcessor:
             raise
 
     # pylint: disable=too-many-locals
-    # Tuple anpassen (siehe customized_datatypes)
     def process_frame(self, image: Frame) -> ProcessedFrame:
         """
         Process a frame to detect shapes, label them with color, and count shapes.
@@ -72,7 +71,7 @@ class ImageProcessor:
 
         shapes_count: Dict[str, int] = {}
 
-        # Search for the valide detected contours:
+        # Search for the valid detected contours:
         for _, contour in enumerate(contours):
             area = cv2.contourArea(contour)
 
@@ -97,7 +96,7 @@ class ImageProcessor:
                 x_mid = 0
                 y_mid = 0
 
-            # Check if it's a circle:
+            # Check if its a circle:
             area = cv2.contourArea(contour)
             perimeter = cv2.arcLength(contour, True)
             circularity = 4 * np.pi * area / (perimeter**2)
@@ -109,7 +108,7 @@ class ImageProcessor:
             if circularity > 0.8 and area_ratio > 0.8:
                 shape_name = "Circle"
             else:
-                # Check if it's an other known geometry; if not set the lable to unknown:
+                # Check if its an other known geometry; if not, set the lable to unknown:
                 shape_name = {
                     3: "Triangle",
                     4: "Quadrilateral",

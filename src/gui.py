@@ -31,14 +31,16 @@ class ImageDisplayWidget(QWidget):
 
         super().__init__()
         self.image_label = QLabel("No image loaded")
+        self.image_label.setMinimumSize(640, 480)
+
         self.image_label.setAlignment(Qt.AlignCenter)  # type: ignore
         self.shapes_label = QLabel("Detected shapes: N/A")
         self.shapes_label.setAlignment(Qt.AlignCenter)  # type: ignore
         self.current_pixmap: Optional[QPixmap] = None
 
         layout = QVBoxLayout(self)
-        layout.addWidget(self.image_label)
-        layout.addWidget(self.shapes_label)
+        layout.addWidget(self.image_label, alignment=Qt.AlignCenter)  # type: ignore
+        layout.addWidget(self.shapes_label, alignment=Qt.AlignCenter)  # type: ignore
 
     def display_image(self, frame: np.ndarray) -> None:
         """
@@ -56,6 +58,7 @@ class ImageDisplayWidget(QWidget):
         except cv2.error as e:  # pylint: disable=catching-non-exception
             print(f"[ERROR] cvtColor failed: {e}")
             return
+
         h, w, ch = rgb.shape
         qt_img = QImage(rgb.data, w, h, ch * w, QImage.Format_RGB888)
         self.current_pixmap = QPixmap.fromImage(qt_img)
@@ -85,10 +88,10 @@ class ImageDisplayWidget(QWidget):
         Function to update the label for the shapes
 
         Args: shapes_count (Dict)
-        
+
         Return: None
         """
-        
+
         if not shapes_count:
             self.shapes_label.setText("Detected shapes: None")
         else:
@@ -181,7 +184,7 @@ class GeometricObjectsGui(QWidget):  # pylint: disable=too-many-instance-attribu
         """
         Init function for the Geometric Objejcts GUI class
 
-        Args: processor (ImageProcessor), is_camera (Bool), image_list (List[str])
+        Args: processor (ImageProcessor), image_list (List[str])
 
         Return: None
         """
@@ -195,6 +198,7 @@ class GeometricObjectsGui(QWidget):  # pylint: disable=too-many-instance-attribu
         self.frame_latest_shapes_count: Dict[int, Dict[str, int]] = {}
         self.latest_shapes_count: Dict[str, int] = {}
         self.speaker = ShapeSpeaker()
+        self.debug: bool = False
 
         if image_list:
             # Store each shape count using the image index as key
@@ -220,7 +224,9 @@ class GeometricObjectsGui(QWidget):  # pylint: disable=too-many-instance-attribu
         # Initialization:
         if self.is_camera:
             self.timer.start(0)
-            print("[INFO] Started camera stream.")
+
+            if self.debug:
+                print("[Debug] Started camera stream.")
         elif self.image_list:
             self.display.display_image(self.image_list[self.current_index])
             self.display.update_shapes_label(

@@ -18,7 +18,7 @@ from gui import GeometricObjectsGui
 from customized_datatypes import Sources, Frame
 
 
-def main() -> None: # pylint: disable=too-many-branches
+def main() -> bool:  # pylint: disable=too-many-return-statements
     """
     Function to run the code
 
@@ -31,6 +31,9 @@ def main() -> None: # pylint: disable=too-many-branches
     parser = argparse.ArgumentParser(description="Read from camera or image folder.")
     parser.add_argument("--camera", action="store_true", help="Use camera device 0")
     parser.add_argument(
+        "--camera_index", type=int, default=0, help="Camera index (default: 0)"
+    )
+    parser.add_argument(
         "--image", action="store_true", help="Process all images in /images/"
     )
     args = parser.parse_args()
@@ -41,20 +44,28 @@ def main() -> None: # pylint: disable=too-many-branches
     app = QApplication(sys.argv)
 
     if args.camera:
+        cam_device = args.camera_index
         # Use camera device 0
         try:
-            source = LoadSources(Sources(cam_device=0, image_path=None))
-        except (RuntimeError, FileNotFoundError, ValueError, PermissionError, TypeError) as e:
+            source = LoadSources(Sources(cam_device, image_path=None))
+        except (
+            RuntimeError,
+            FileNotFoundError,
+            ValueError,
+            PermissionError,
+            TypeError,
+        ) as e:
             print(f"[ERROR] {e}")
-        else:
-            try:
-                processor = ImageProcessor(source)
-            except PermissionError as e:
-                print(f"[ERROR] {e}")
-            else:
-                gui = GeometricObjectsGui(processor=processor, is_camera=True)
-                gui.show()
-                sys.exit(app.exec_())
+            return False
+        try:
+            processor = ImageProcessor(source)
+        except PermissionError as e:
+            print(f"[ERROR] {e}")
+            return False
+
+        gui = GeometricObjectsGui(processor=processor, is_camera=True)
+        gui.show()
+        app.exec_()
 
     elif args.image:
         # Collect all image paths in the folder
@@ -75,37 +86,49 @@ def main() -> None: # pylint: disable=too-many-branches
 
         if not image_files:
             print(f"[ERROR] No images found in {images_dir}")
-            return
+            return False
 
         try:
             source = LoadSources(Sources(image_path=image_files[0]))
-        except (RuntimeError, FileNotFoundError, ValueError, PermissionError, TypeError) as e:
+        except (
+            RuntimeError,
+            FileNotFoundError,
+            ValueError,
+            PermissionError,
+            TypeError,
+        ) as e:
             print(f"[ERROR] {e}")
-        else:
-            try:
-                processor = ImageProcessor(source)
-            except PermissionError as e:
-                print(f"[ERROR] {e}")
-            else:
-                # Tuple anpassen (siehe customized_datatypes)
-                images: list[tuple[np.ndarray, dict[str, int]]] = []
+            return False
+        try:
+            processor = ImageProcessor(source)
+        except PermissionError as e:
+            print(f"[ERROR] {e}")
+            return False
 
-                for path in image_files:
-                    image = source.load_frame(Frame(path=path))
-                    result = processor.process_frame(image)
-                    images.append((result.image, result.shapes_count))
+        images: list[tuple[np.ndarray, dict[str, int]]] = []
 
-                # Initialize the GUI with the list of images
-                gui = GeometricObjectsGui(
-                    processor=processor, is_camera=False, image_list=images
-                )
-                gui.show()
-                sys.exit(app.exec_())
+        for path in image_files:
+            image = source.load_frame(Frame(path=path))
+            result = processor.process_frame(image)
+            images.append((result.image, result.shapes_count))
+
+        # Initialize the GUI with the list of images
+        gui = GeometricObjectsGui(
+            processor=processor, is_camera=False, image_list=images
+        )
+        gui.show()
+        app.exec_()
 
     else:
         print("[ERROR] Please specify either --camera or --image")
-        return
+        return False
+
+    return True
 
 
 if __name__ == "__main__":
-    main()
+    success = main()
+
+    print(
+        f"[Info] The program executed {'successfully' if success else 'with an error'}."
+    )
