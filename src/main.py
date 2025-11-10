@@ -105,7 +105,6 @@ def main() -> bool:  # pylint: disable=too-many-return-statements
             print(f"[ERROR] {e}")
             return False
 
-        # Tuple anpassen (siehe customized_datatypes)
         images: list[tuple[np.ndarray, dict[str, int]]] = []
 
         for path in image_files:
