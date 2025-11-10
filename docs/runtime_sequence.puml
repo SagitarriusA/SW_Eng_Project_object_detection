@@ -1,0 +1,38 @@
+@startuml
+title Runtime sequence: process one frame
+
+actor User
+participant "main.py" as Main
+participant "LoadSources" as Load
+participant "ImageProcessor" as Proc
+participant "DataLogger" as Logger
+participant "GeometricObjectsGui" as GUI
+
+User -> Main: start (--image or --camera)
+Main -> Load: LoadSources(cam_device/image_path)
+Load --> Main: initialized (cap/image/is_camera)
+Main -> Proc: ImageProcessor(source=Load)
+Proc --> Main: ready
+
+alt camera mode
+    loop every frame
+        Main -> Load: load_frame()
+        Load --> Proc: frame
+        Proc -> Proc: process_frame(frame)
+        Proc -> Logger: log(shape, color)
+        Proc -> GUI: update display(frame with annotations)
+    end
+else image mode
+    Main -> Load: load_frame(path)
+    Load --> Proc: image
+    Proc -> Proc: process_frame(image)
+    Proc -> Logger: log(shape, color)
+    Proc -> GUI: render static image
+end
+
+Main -> Load: release() [on exit]
+Main -> Proc: release() [delegates to Load if needed]
+
+note over Proc,Load: ImageProcessor delegates frame IO to LoadSources
+
+@enduml
