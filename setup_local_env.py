@@ -13,6 +13,7 @@ import configparser
 import subprocess
 import sys
 import os
+import platform 
 
 
 def install_local_requirements():
@@ -29,7 +30,33 @@ def install_local_requirements():
     if not requirements:
         print("No requirements found in config.ini [install] section.")
         return
+    
+    # If the script runs on lnux install PyQt5 with sudo and define the link to it
 
+    is_linux = platform.system() == "Linux"
+    
+    if is_linux and "PyQt5" in requirements:
+        print("Detected Linux -> Installing PyQt5 via apt (pip version is broken on Linux).")
+        try:
+            subprocess.check_call(["sudo", "apt", "update"])
+            subprocess.check_call(["sudo", "apt", "-y", "install", "python3-pyqt5"])
+            print("PyQt5 installed via apt successfully")
+        except Exception as e:
+            print(f"Error installing PyQt5 via apt: {e}")
+            print("Please install manually: sudo apt install python3-pyqt5")
+
+        requirements.remove("PyQt5")
+    venv_site = next(
+        p for p in sys.path if p.endswith("site-packages")
+    )
+    pth_file = os.path.join(venv_site, "pyqt5-system.pth")
+
+    print(f"writing  .pth file so venv can use system PyQt5 => {pth_file}")
+
+    with open(pth_file, "w", encoding="uft-8") as f:
+        f.write("/usr/lib/python3/dist-packages\n")
+
+    print("Venv is now linked to system PyQt5.")
     # remove the PIP_USER env var to prevent the --user conflict
     env = os.environ.copy()
     env.pop("PIP_USER", None)
