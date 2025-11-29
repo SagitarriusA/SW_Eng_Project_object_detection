@@ -10,6 +10,7 @@ classes: customized_datatypes
 import os
 from datetime import datetime
 from customized_datatypes import LogMessage
+import configparser
 
 
 class DataLogger:  # pylint: disable=too-few-public-methods
@@ -24,12 +25,25 @@ class DataLogger:  # pylint: disable=too-few-public-methods
         Return: None
         """
 
-        # Generate the dir for the logs if it's still missing:
+        # Project root (one level above src/)
         self.project_root = os.path.abspath(
             os.path.join(os.path.dirname(__file__), "..")
         )
-        self.log_dir = os.path.join(self.project_root, "logs")
+
+        # Read log directory from config.ini
+        config = configparser.ConfigParser()
+        config.read(os.path.join(self.project_root, "config.ini"))
+        cfg_log_dir = config.get("logging", "log_dir", fallback="logs")
+
+        # If the path in config is relative, make it relative to the project root
+        if os.path.isabs(cfg_log_dir):
+            self.log_dir = cfg_log_dir
+        else:
+            self.log_dir = os.path.join(self.project_root, cfg_log_dir)
+
+        # Create the directory if it does not exist (as requested)
         os.makedirs(self.log_dir, exist_ok=True)
+
 
         # Generate the filename with the current date:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
