@@ -8,23 +8,27 @@ classes: None
 """
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Dict
 import numpy as np
+
 
 @dataclass
 class LogMessage:
     shape: str
     color: str
 
+
 @dataclass
 class Frame:
     frame: Optional[np.ndarray] = None
     path: Optional[str] = None
 
+
 @dataclass
 class ProcessedFrame:
     image: np.ndarray
-    shapes_count: dict[str, int]
+    shapes_count: Dict[str, int]
+
 
 @dataclass
 class Sources:

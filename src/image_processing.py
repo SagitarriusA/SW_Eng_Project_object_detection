@@ -23,7 +23,7 @@ class ImageProcessor:
         Init function for the class
 
         args: loaded_source (LoadSources)
-        
+
         return: None
         """
 
@@ -187,9 +187,9 @@ class ImageProcessor:
     def load_frame(self, data: Optional[Frame] = None) -> Frame:
         """
         Function to delegate frame loading to the LoadSources instance
-        
+
         Args: data (Optional[Frame])
-        
+
         Return: Frame
         """
 
@@ -201,9 +201,9 @@ class ImageProcessor:
     def release(self) -> None:
         """
         Function to release the source resources
-        
+
         Args: None
-        
+
         Return: None
         """
 
