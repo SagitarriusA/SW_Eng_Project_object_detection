@@ -8,9 +8,9 @@ classes: customized_datatypes
 """
 
 import os
+import configparser
 from datetime import datetime
 from customized_datatypes import LogMessage
-import configparser
 
 
 class DataLogger:  # pylint: disable=too-few-public-methods
