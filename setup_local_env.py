@@ -41,7 +41,7 @@ def install_local_requirements():
             subprocess.check_call(["sudo", "apt", "update"])
             subprocess.check_call(["sudo", "apt", "-y", "install", "python3-pyqt5"])
             print("PyQt5 installed via apt successfully")
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             print(f"Error installing PyQt5 via apt: {e}")
             print("Please install manually: sudo apt install python3-pyqt5")
 
@@ -53,7 +53,7 @@ def install_local_requirements():
 
     print(f"writing  .pth file so venv can use system PyQt5 => {pth_file}")
 
-    with open(pth_file, "w", encoding="uft-8") as f:
+    with open(pth_file, "w", encoding="utf-8") as f:
         f.write("/usr/lib/python3/dist-packages\n")
 
     print("Venv is now linked to system PyQt5.")
