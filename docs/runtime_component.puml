@@ -1,0 +1,43 @@
+@startuml
+title Runtime component view (high level)
+!define AWSPUML https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0/LATEST/AWSPUML
+
+package "Application" {
+  component "main.py" as Main #LightBlue
+  component "LoadSources" as Load #LightGreen
+  component "ImageProcessor" as Proc #LightYellow
+  component "DataLogger" as Logger #LightGray
+  component "GeometricObjectsGui" as GUI #LightPink
+}
+
+Main --> Load : create / init_source()
+Main --> Proc : create (source)
+Proc --> Load : load_frame()  <<delegation>>
+Proc --> Logger : log(shape, color)
+Proc --> GUI : draw/update
+
+note right of Load
+  Responsibilities:
+  - open camera or read image
+  - provide frames via load_frame()
+end note
+
+note right of Proc
+  Responsibilities:
+  - process_frame(frame): detect contours, label, count
+  - pick color names
+  - delegate IO to LoadSources
+end note
+
+note right of Logger
+  Responsibilities:
+  - persist detection events
+end note
+
+note right of GUI
+  Responsibilities:
+  - display frames
+  - show counts / user interaction
+end note
+
+@enduml

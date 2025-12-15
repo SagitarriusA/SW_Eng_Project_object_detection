@@ -2,27 +2,48 @@
 
 """
 file: log_data.py
-description: File that logs the detected geometries into the csv file
-author: Bauer Ryoya, Walter Julian, Willmann York
-date: 2025-10-11
-date: 2025-10-26
-version: 1.1
-changes: typo-changes according to Pylint
+description: File that logs detected shapes into csv file
 dependencies: os, datetime
+classes: customized_datatypes
 """
 
 import os
+import configparser
 from datetime import datetime
+from customized_datatypes import LogMessage
 
 
-class DataLogger:
-    def __init__(self):
-        # Generate the dir for the logs if it's still missing:
+class DataLogger:  # pylint: disable=too-few-public-methods
+    """Class for the data logging"""
+
+    def __init__(self) -> None:
+        """
+        Init function for the class
+
+        Args: None
+
+        Return: None
+        """
+
+        # Project root (one level above src/)
         self.project_root = os.path.abspath(
             os.path.join(os.path.dirname(__file__), "..")
         )
-        self.log_dir = os.path.join(self.project_root, "logs")
+
+        # Read log directory from config.ini
+        config = configparser.ConfigParser()
+        config.read(os.path.join(self.project_root, "config.ini"))
+        cfg_log_dir = config.get("logging", "log_dir", fallback="logs")
+
+        # If the path in config is relative, make it relative to the project root
+        if os.path.isabs(cfg_log_dir):
+            self.log_dir = cfg_log_dir
+        else:
+            self.log_dir = os.path.join(self.project_root, cfg_log_dir)
+
+        # Create the directory if it does not exist (as requested)
         os.makedirs(self.log_dir, exist_ok=True)
+
 
         # Generate the filename with the current date:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -35,15 +56,23 @@ class DataLogger:
         except (PermissionError, OSError) as e:
             print(f"[LOG ERROR] Could not write to {self.log_path}: {e}")
         else:
-            print(f"Started logging to {self.log_path}")
+            print(f"[Info] Started logging to {self.log_path}")
 
-    def log(self, shape, color):
+    def log(self, message: LogMessage) -> None:
+        """
+        Public function to log the shape name and mean color
+
+        arg: message.shape (str), message.color (str)
+
+        return: None
+        """
+
         # Write the current time, detected shape and color into the csv file:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         try:
             with open(self.log_path, "a", encoding="utf-8") as f:
-                f.write(f"{timestamp:<22} {color:<17} {shape:<10}\n")
+                f.write(f"{timestamp:<22} {message.color:<17} {message.shape:<10}\n")
         except (PermissionError, OSError) as e:
             print(f"[LOG ERROR] Could not write to {self.log_path}: {e}")
 
@@ -56,7 +85,7 @@ if __name__ == "__main__":
 
     else:
         # Test the logging with a few logs:
-        logging.log("circle", "red")
-        logging.log("Pentagon", "purple")
-        logging.log("circle", "blue")
-        logging.log("circle", "yellow")
+        logging.log(LogMessage(shape="circle", color="red"))
+        logging.log(LogMessage(shape="pentagon", color="purple"))
+        logging.log(LogMessage(shape="circle", color="blue"))
+        logging.log(LogMessage(shape="circle", color="yellow"))

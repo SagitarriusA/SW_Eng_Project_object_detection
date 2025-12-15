@@ -2,7 +2,7 @@
 
 """
 file: setup_local_env.py
-description: Setup file to install the librarys (packages) into the venv
+description: Setup file to install the libraries (packages) into the .venv
 author: Bauer Ryoya, Walter Julian, Willmann York
 date: 2025-10-20
 version: 1.0
@@ -13,25 +13,54 @@ import configparser
 import subprocess
 import sys
 import os
+import platform 
+
 
 def install_local_requirements():
     """Installs local dependencies"""
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read("config.ini")
 
     requirements = [
-        pkg.strip() for pkg in config.get('install', 'requirements', fallback='').split(',')
+        pkg.strip()
+        for pkg in config.get("install", "requirements", fallback="").split(",")
         if pkg.strip()
     ]
 
     if not requirements:
         print("No requirements found in config.ini [install] section.")
         return
+    
+    # If the script runs on lnux install PyQt5 with sudo and define the link to it
 
+    is_linux = platform.system() == "Linux"
+    
+    if is_linux and "PyQt5" in requirements:
+        print("Detected Linux -> Installing PyQt5 via apt (pip version is broken on Linux).")
+        try:
+            subprocess.check_call(["sudo", "apt", "update"])
+            subprocess.check_call(["sudo", "apt", "-y", "install", "python3-pyqt5"])
+            print("PyQt5 installed via apt successfully")
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            print(f"Error installing PyQt5 via apt: {e}")
+            print("Please install manually: sudo apt install python3-pyqt5")
+
+        requirements.remove("PyQt5")
+    venv_site = next(
+        p for p in sys.path if p.endswith("site-packages")
+    )
+    pth_file = os.path.join(venv_site, "pyqt5-system.pth")
+
+    print(f"writing  .pth file so venv can use system PyQt5 => {pth_file}")
+
+    with open(pth_file, "w", encoding="utf-8") as f:
+        f.write("/usr/lib/python3/dist-packages\n")
+
+    print("Venv is now linked to system PyQt5.")
     # remove the PIP_USER env var to prevent the --user conflict
     env = os.environ.copy()
     env.pop("PIP_USER", None)
-    
+
     # build final pip command
     cmd = [sys.executable, "-m", "pip", "install", "--upgrade", *requirements]
 
@@ -42,12 +71,13 @@ def install_local_requirements():
 
 
 def setup_pylint_config():
-    """Erstellt .pylintrc falls noch nicht vorhanden."""
+    """Creates .pylintrc if not available yet."""
     pylintrc_path = ".pylintrc"
     if not os.path.exists(pylintrc_path):
         print("Creating default .pylintrc for PyQt5 and project classes...")
         with open(pylintrc_path, "w", encoding="utf-8") as f:
-            f.write("""[MASTER]
+            f.write(
+                """[MASTER]
 ignore=venv
 
 [TYPECHECK]
@@ -65,7 +95,8 @@ disable=
     E1101,  # no-member (PyQt5 dynamic attributes)
     R0903,  # too few public methods
 
-""")
+"""
+            )
     else:
         print(".pylintrc already exists – skipping creation.")
 
