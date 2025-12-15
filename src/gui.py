@@ -7,7 +7,7 @@ dependencies: typing, numpy, cv2, PyQt5
 classes: ImageProcessor, ShapeSpeaker
 """
 
-from typing import Optional, Dict
+from typing import Optional, List, Tuple, Dict
 import numpy as np
 import cv2
 from PyQt5.QtWidgets import QLabel, QWidget, QVBoxLayout, QPushButton
@@ -179,7 +179,7 @@ class GeometricObjectsGui(QWidget):  # pylint: disable=too-many-instance-attribu
         self,
         processor: Optional[ImageProcessor] = None,
         is_camera: bool = False,
-        image_list: Optional[list[tuple[np.ndarray, dict[str, int]]]] = None,
+        image_list: Optional[List[Tuple[np.ndarray, Dict[str, int]]]] = None,
     ) -> None:
         """
         Init function for the Geometric Objejcts GUI class
